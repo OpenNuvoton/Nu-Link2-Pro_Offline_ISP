@@ -1,7 +1,9 @@
 # Nu-Link2-Pro_Offline_ISP 
 Nu-Link2-Pro_Offline_ISP is a sample project based on KEIL uVision, that can do ISP function in Nu-Link2-Pro offline mode.  
 
-### About how to build code and do the configuration, please check "Nu-Link2-Pro_Offline_ISP.PPT"
+![](Nu-Link2-Pro_Offline_ISP.PNG)
+
+Check "Nu-Link2-Pro_Offline_ISP.PPT" to know how to build code and do the configuration  
 
 ### operation steps
 1. Build and program Nu-Link2-Pro_Offline_ISP firmware to Nu-Link2-Pro board
