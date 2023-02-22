@@ -597,7 +597,7 @@ static int ohci_int_xfer(UTR_T *utr)
 
     if (utr->data_len > 64)             /* USB 1.1 interrupt transfer maximum packet size is 64 */
         return USBH_ERR_INVALID_PARAM;
-
+		
     td_new = alloc_ohci_TD(utr);        /* allocate a TD for dummy TD                     */
     if (td_new == NULL)
         return USBH_ERR_MEMORY_OUT;
@@ -664,20 +664,21 @@ static int ohci_int_xfer(UTR_T *utr)
     /*------------------------------------------------------------------------------------*/
     /*  Hook ED and TD list to HCCA interrupt table                                       */
     /*------------------------------------------------------------------------------------*/
-    DISABLE_OHCI_IRQ();
+		if(utr->data_len){
+			DISABLE_OHCI_IRQ();
 
-    ed->TailP = (uint32_t)td_new;
-    if (bIsNewED)
-    {
-        /* Add to list of the same interval */
-        ed->NextED = ied->NextED;
-        ied->NextED = (uint32_t)ed;
-    }
+			ed->TailP = (uint32_t)td_new;
+			if (bIsNewED)
+			{
+					/* Add to list of the same interval */
+					ed->NextED = ied->NextED;
+					ied->NextED = (uint32_t)ed;
+			}
 
-    ENABLE_OHCI_IRQ();
-
+			ENABLE_OHCI_IRQ();
+		}
     //printf("Link INT ED 0x%x: 0x%x 0x%x 0x%x 0x%x\n", (int)ed, ed->Info, ed->TailP, ed->HeadP, ed->NextED);
-
+		
     _ohci->HcControl |= USBH_HcControl_PLE_Msk;              /* periodic list enable      */
     return 0;
 }

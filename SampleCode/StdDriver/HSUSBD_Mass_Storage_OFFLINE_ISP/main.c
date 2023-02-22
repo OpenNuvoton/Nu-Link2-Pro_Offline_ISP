@@ -175,6 +175,7 @@ int32_t main(void)
     UART_Open(UART0, 115200);
     SpiInit();
     ISP_Bridge_Init();
+		FMC_Open();
 
     HSUSBD_Open(&gsHSInfo, MSC_ClassRequest, NULL);
 
@@ -225,34 +226,6 @@ int32_t main(void)
         }
     }
 
-#if 0
-    enable_USB_HOST_tick(100);
-    usbh_core_init();
-    usbh_hid_init();
-    usbh_memory_used();
-
-    memset(g_hid_list, 0, sizeof(g_hid_list));
-
-    while (1)
-    {
-        if (usbh_pooling_hubs())             /* USB Host port detect polling and management */
-        {
-            printf("\n Has hub events.\n");
-            hdev = usbh_hid_get_device_list();
-
-            if (hdev != NULL)
-            {
-                init_hid_device(hdev);
-                update_hid_device_list(hdev_list);
-                usbh_memory_used();
-                break;
-            }
-
-
-        }
-    }
-
-#endif
 #if USBHOST_DISK
     unsigned int usbhost_false_count;
     storage |= 0x4;
@@ -303,7 +276,24 @@ int32_t main(void)
 
     /* Enable USBD interrupt */
     NVIC_EnableIRQ(USBD20_IRQn);
-
+	
+		uint32 diskflag = 1; 
+		if ((FMC_Read(0x00060000) & 0xF0000000)== 0x10000000)
+			 diskflag = 0;
+		
+		uint32_t offline_flag, limit_count;
+	  uint32_t blk, order, msk;
+		offline_flag = FMC_Read(0x00060000);
+		limit_count = FMC_Read(0x00060004) - 1;
+		// read limit_count, offline_count
+		blk = (limit_count / 32);
+		order = (limit_count % 32);
+		msk = (0x1ul << order); 
+		if((FMC_Read(0x00060008 + 4 * blk) & msk) == 0 && offline_flag == 0x11111111){
+				printf("Program count is reach limit.\n\r");
+				BUSY = 0;
+		}
+		
     while (1)
     {
         //  SYS_UnlockReg();
@@ -314,6 +304,8 @@ int32_t main(void)
             while (PC7 == 0); //wait for button release
 
             button_start = 0; //clear button
+						BUSY = 1;
+						PASS = 1;
             NVIC_DisableIRQ(USBD20_IRQn);
             NVIC_DisableIRQ(GPC_IRQn);
 
@@ -345,33 +337,39 @@ int32_t main(void)
     {
         CLK_Idle();
 
-        if (g_hsusbd_Configured)
+        if (g_hsusbd_Configured && diskflag)
             MSC_ProcessCmd();
 
         if (button_start == 1)
         {
             while (PC7 == 0); //wait for button release
-
+						
             button_start = 0; //clear button
-            NVIC_DisableIRQ(USBD20_IRQn);
-            NVIC_DisableIRQ(GPC_IRQn);
+						
+						BUSY = 1;
+						PASS = 1;
+						NVIC_DisableIRQ(USBD20_IRQn);
+						NVIC_DisableIRQ(GPC_IRQn);
 
-            if (load_lua_script() == 0)
-            {
-                L = luaL_newstate();
-                luaopen_base(L);
-                luaopen_mylib(L);
-                luaL_openlibs(L);
-                printf("run lua\n\r");
-                luaL_dostring(L, LUA_SCRIPT_GLOBAL);
-                //luaL_dostring(L, Buff);
-                lua_close(L);
-                printf("lua end\n\r");
-            }
+						if (load_lua_script() == 0)
+						{							
+								L = luaL_newstate();
+								luaopen_base(L);
+								luaopen_mylib(L);
+								luaL_openlibs(L);
+								printf("run lua\n\r");
+								int k = luaL_dostring(L, LUA_SCRIPT_GLOBAL);
+								if (k != 0){
+									printf("error!");
+								}
+								//luaL_dostring(L, Buff);
+								lua_close(L);
+								printf("lua end\n\r");
+						}
 
-            NVIC_EnableIRQ(USBD20_IRQn);
-            NVIC_EnableIRQ(GPC_IRQn);
-        }
+						NVIC_EnableIRQ(USBD20_IRQn);
+						NVIC_EnableIRQ(GPC_IRQn);
+					}
     }
 }
 

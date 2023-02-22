@@ -1,5 +1,5 @@
 local status, err = pcall(function()
-File_name="0:\\test.bin" --bin file for isp aprom
+File_name="0:\\random.bin" --bin file for isp aprom
 temp=string.format("strage=0x%x",ISP_SHOW_STORAGE())
 print(temp)
 
@@ -17,9 +17,13 @@ print(temp)
 filechecksum=ISP_AP_FILE_CHECKSUM(File_name)
 temp=string.format("APROM checksum=0x%x",filechecksum)
 print(temp)
---initial interface 0 uart.
---initial interface 1 rs485
-ISP_INTERFACE_INIT(0)
+--initial interface 0 UART
+--initial interface 1 CAN
+--initial interface 2 SPI
+--initial interface 3 I2C
+--initial interface 4 RS485
+--initial interface 5 USB
+ISP_INTERFACE_INIT(5)
 print("sync:")
 
 --sync isp protocol package
@@ -58,10 +62,14 @@ end
 --set program
 ISP_SET_PFILE(File_name)
 
+--set limit count 
+ISP_SET_LIMIT(100)
+
 --do isp program flow
 if(ISP_PROGRAM(0,filesize)==0)
 then
 print("program pass")
+ISP_HideDiskFlagOn()
 end
 
 end)

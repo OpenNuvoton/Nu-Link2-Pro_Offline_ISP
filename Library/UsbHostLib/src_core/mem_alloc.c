@@ -70,7 +70,7 @@ void usbh_memory_init(void)
     _mem_pool_used = 0;
     _sidx = 0;
 
-    g_udev_list = NULL;
+    //g_udev_list = NULL;
 
     memset(_dev_addr_pool, 0, sizeof(_dev_addr_pool));
     _device_addr = 1;

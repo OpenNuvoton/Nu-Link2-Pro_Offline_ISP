@@ -43,17 +43,23 @@ void  int_read_callback(HID_DEV_T *hdev, uint16_t ep_addr, int status, uint8_t *
         USB_HOST_recbuf[i] = rdata[i];
 }
 
+static volatile int  int_out_started = 0;
 unsigned char USB_HOST_sendbuf[64];
+static volatile int USB_HOST_int_tx_cnt = 0;
+
+
 void  int_write_callback(HID_DEV_T *hdev, uint16_t ep_addr, int status, uint8_t *wbuff, uint32_t *buff_size)
 {
     int i;
 
     //copy data to send buffer
-    for (i = 0; i < 64; i++)
+    for (i = 0; i < USB_HOST_int_tx_cnt; i++)
         wbuff[i] = USB_HOST_sendbuf[i];
 
     //wbuff = &USB_HOST_sendbuf[0];
-    *buff_size = 64;
+    *buff_size = USB_HOST_int_tx_cnt;
+    printf("[%d] ", USB_HOST_int_tx_cnt);
+    USB_HOST_int_tx_cnt = 0;
 }
 
 uint8_t  g_buff_pool[1024] __attribute__((aligned(32)));
@@ -105,6 +111,7 @@ int  init_hid_device(HID_DEV_T *hdev)
     }
 
 #endif
+		int_out_started = 0;
 #if 1
     printf("\nUSBH_HidStartIntReadPipe...\n");
     ret = usbh_hid_start_int_read(hdev, 0x81, int_read_callback);
@@ -136,18 +143,37 @@ ErrNo USBH_HID_WRITE(io_handle_t handle, const void *buf, uint32 *len)
     pSrc = (uint8_t *)buf;
     int i = 0;
     has_out_data = 0;
-
+    
+    if (USB_HOST_int_tx_cnt != 0) {
+    	printf("int out not ready!\n");
+	}
+	
     for (i = 0; i < 64; i++)
         USB_HOST_sendbuf[i] = pSrc[i];
-
+    USB_HOST_int_tx_cnt = 64;
+		//CLK_SysTickDelay(50000);
+	
+#if 1
+		if (!int_out_started) {
+    	usbh_hid_start_int_write(hdev, 0x2, int_write_callback);
+			int_out_started = 1;
+    }
+		else{
+			usbh_hid_int_write_trigger(hdev, 0x2, int_write_callback);	
+			// something to surely trigger an int_write_callback and an usbh_int_xfer
+		}
+	
+#endif
+#if 0
    // printf("write:%d\n\r", usbh_hid_start_int_write(hdev, 0x2, int_write_callback));
-
-    if (usbh_hid_start_int_write(hdev, 0x2, int_write_callback) != HID_RET_OK)
-    {
-        printf("\n[FAIL] ==> Interrupt out transfer started...\n");
-
-     }
-
+		//usbh_hid_start_int_write(hdev, 0x2, int_write_callback);
+    if (!int_out_started) {
+    	if (usbh_hid_start_int_write(hdev, 0x2, int_write_callback) != HID_RET_OK)
+        	printf("\n[FAIL] ==> Interrupt out transfer started...\n");
+        else
+        	int_out_started = 1;
+    }
+#endif		
 
     return ENOERR;
 }
@@ -158,25 +184,21 @@ ErrNo USBH_HID_READ(io_handle_t handle, void *buf, uint32 *len)
     uint8_t *pSrc;
     int i;
     pSrc = (uint8_t *)buf;
-
-    int        ret;
-    //ret = usbh_hid_start_int_read(hdev, 0x81, int_read_callback);
-    usbh_pooling_hubs();
-    // if (ret != HID_RET_OK)
-    //    printf("usbh_hid_start_int_read failed!\n");
+#if 1		
+    //usbh_pooling_hubs();
 
     while (has_out_data == 0)
     {
         usbh_pooling_hubs();
     }
 
-    usbh_hid_stop_int_write(hdev, 0x02) ;
-    //usbh_hid_stop_int_read(hdev, 0x02) ;
+	
     usbh_pooling_hubs();
-
+#endif
+		
     ///CLK_SysTickDelay(50000);
     for (i = 0; i < 64; i++)
-        pSrc[i] = USB_HOST_recbuf[i];
+        pSrc[i] = USB_HOST_recbuf[i];	
 
     return ENOERR;
 }
@@ -189,7 +211,7 @@ ErrNo USBH_HID_Config(void *priv)
     usbh_memory_used();
 
     memset(g_hid_list, 0, sizeof(g_hid_list));
-
+	
     while (1)
     {
         if (usbh_pooling_hubs())             /* USB Host port detect polling and management */
@@ -205,7 +227,7 @@ ErrNo USBH_HID_Config(void *priv)
                 break;
             }
 
-
+						break;
         }
     }
 

@@ -14,6 +14,14 @@
 #include "lauxlib.h"
 #include "lualib.h"
 #include "luaconf.h"
+
+#define OFFLINE_FLAG  	 0x00060000UL
+#define OFFLINE_OFFSET0  0x00060004UL
+#define OFFLINE_COUNT    0x00060008UL
+
+#define BUSY PB9
+#define PASS PB8
+
 typedef enum
 {
     UART_BUS,
@@ -47,7 +55,6 @@ extern volatile unsigned int DATAFLASH_file_checksum;
 extern unsigned char storage;
 uint32_t config[2];
 
-
 static int SHOW_STORAGE(lua_State *L)
 {
     lua_pushnumber(L, (unsigned int)storage);
@@ -77,6 +84,8 @@ int ISP_PROGRAM(lua_State *L)
 {
     unsigned int program_size;
     unsigned int start_address;
+	  uint32_t offline_flag, limit_count;
+	  uint32_t blk, order, msk;
     int argc;
     ErrNo ret;
     argc    = lua_gettop(L); //get number count
@@ -86,10 +95,52 @@ int ISP_PROGRAM(lua_State *L)
     if (argc != 2)
         return 1;
 
-    ret = Updated_Target_Flash(&ISP_COMMAND, start_address, program_size);
-
+		SYS_UnlockReg();
+		FMC_Open();
+		FMC_ENABLE_ISP();
+		offline_flag = FMC_Read(OFFLINE_FLAG);
+		limit_count = FMC_Read(OFFLINE_OFFSET0) - 1;
+		// read limit_count, offline_count
+		blk = (limit_count / 32);
+		order = (limit_count % 32);
+		msk = (0x1ul << order);  
+		if (offline_flag == 0x11111111){
+			if((FMC_Read(OFFLINE_COUNT + 4 * blk) & msk) == 0){
+				ret = 1;
+				printf("Program count is reach limit.\n\r");
+				BUSY = 0;
+			}
+			else{
+				ret = Updated_Target_Flash(&ISP_COMMAND, start_address, program_size);		
+				if(ret == 0){
+					FMC_ENABLE_AP_UPDATE();
+					int i = 0,j = 0;
+					while(FMC_Read(OFFLINE_COUNT + 4 * i) == 0x0){
+						i++;
+					}
+					int msk2 = (0x1ul << j);
+					while((FMC_Read(OFFLINE_COUNT + 4 * i) & msk2) == 0){
+						j++;
+						msk2 = (0x1ul << j);
+					}
+					FMC_Write(OFFLINE_COUNT + 4 * i, ~msk2);
+					FMC_DISABLE_AP_UPDATE();
+					printf("Success Program count: %d \n\r",i*32 + j +1);
+					printf("Limited Program count: %d \n\r",limit_count + 1);
+				}		
+			}				
+		}
+		else if (offline_flag != 0x11111111){
+			ret = Updated_Target_Flash(&ISP_COMMAND, start_address, program_size);
+		}
+		else {
+			ret = 1;
+		}
     lua_pushnumber(L, (int)ret); //0 pass, 1 false
 
+		FMC_DISABLE_ISP();
+		FMC_Close();
+		SYS_LockReg();
     return 1;
 }
 
@@ -116,12 +167,11 @@ int ISP_INTERFACE_INIT(lua_State *L)
     if (DEVICE_TYPE == CAN_BUS)
         ret = io_open(CAN_NAME_STRING, &DEV_handle);
 
-    if (DEVICE_TYPE == USBH_HID_BUS)
-        ret = io_open(USBH_HID_NAME_STRING, &DEV_handle);
-
+    if (DEVICE_TYPE == USBH_HID_BUS)	
+				ret = io_open(USBH_HID_NAME_STRING, &DEV_handle);
+		
     init_ISP_command();
     //if  (ret ==0 )
-
 
     return 1;
 }
@@ -286,7 +336,7 @@ int ISP_CmdGetDeviceID(lua_State *L)
     }
     else
     {
-        lua_pushnumber(L, (unsigned int)0xffffffff);
+        lua_pushnumber(L, 1);
     }
 
     return 1;
@@ -382,6 +432,64 @@ int ISP_SET_PFILE(lua_State *L)
     return 1;
 }
 
+int ISP_SET_LIMIT(lua_State *L)
+{
+		/*
+    read limit_count
+		if limit_count = 0 
+			set limit_count from lua*/
+		int argc, ret = 1;
+	  uint32_t limit_count;
+	
+	  SYS_UnlockReg();
+		FMC_Open();
+	  FMC_ENABLE_AP_UPDATE();
+	  FMC_ENABLE_ISP();
+	
+		if ((FMC_Read(OFFLINE_FLAG) & 0x0FFFFFFF) == 0x01111111)
+			 ret = 0;
+		
+		else{
+			argc    = lua_gettop(L); //get number count
+			limit_count = (unsigned int)lua_tonumber(L, 1);		
+			
+			if (limit_count != 0 && limit_count < 1024){
+				FMC_Write(OFFLINE_OFFSET0, limit_count);
+				FMC_Write(OFFLINE_FLAG, 0xF1111111);
+			}	
+		}
+		
+		FMC_DISABLE_ISP();
+		FMC_DISABLE_AP_UPDATE();
+		FMC_Close();
+		SYS_LockReg();
+		return ret;
+}
+
+int ISP_HideDiskFlagOn(lua_State *L){
+
+		int ret = 1;
+	  SYS_UnlockReg();
+		FMC_Open();
+	  FMC_ENABLE_AP_UPDATE();
+	  FMC_ENABLE_ISP();
+	
+		if ((FMC_Read(OFFLINE_FLAG) & 0xF0000000) == 0x10000000)
+			 ret = 0;
+		
+		if ((FMC_Read(OFFLINE_FLAG) & 0x0FFFFFFF) != 0x01111111)
+			 ret = 0;
+		
+		FMC_Write(OFFLINE_FLAG, 0x1FFFFFFF);
+		
+		FMC_DISABLE_ISP();
+		FMC_DISABLE_AP_UPDATE();
+		FMC_Close();
+		SYS_LockReg();
+		
+		return ret;
+}
+
 static const struct luaL_Reg mylib[] =
 {
 
@@ -401,6 +509,8 @@ static const struct luaL_Reg mylib[] =
     {"ISP_SET_PFILE", ISP_SET_PFILE},
     {"ISP_PROGRAM", ISP_PROGRAM},
     {"ISP_SHOW_STORAGE", SHOW_STORAGE},
+		{"ISP_SET_LIMIT", ISP_SET_LIMIT},
+		{"ISP_HideDiskFlagOn", ISP_HideDiskFlagOn},
     {NULL, NULL}
 
 };
