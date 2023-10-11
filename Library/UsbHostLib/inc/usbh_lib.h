@@ -185,7 +185,7 @@ extern int32_t  usbh_hid_get_protocol(struct usbhid_dev *hdev, uint8_t *protocol
 extern int32_t  usbh_hid_set_protocol(struct usbhid_dev *hdev, uint8_t protocol);
 extern int32_t  usbh_hid_start_int_read(struct usbhid_dev *hdev, uint8_t ep_addr, HID_IR_FUNC *func);
 extern int32_t  usbh_hid_stop_int_read(struct usbhid_dev *hdev, uint8_t ep_addr);
-extern int32_t  usbh_hid_start_int_write(struct usbhid_dev *hdev, uint8_t ep_addr, HID_IW_FUNC *func);
+extern int32_t  usbh_hid_start_int_write(struct usbhid_dev *hdev, uint8_t ep_addr, HID_IW_FUNC *func, int32_t irq);
 extern int32_t  usbh_hid_stop_int_write(struct usbhid_dev *hdev, uint8_t ep_addr);
 
 /*------------------------------------------------------------------*/

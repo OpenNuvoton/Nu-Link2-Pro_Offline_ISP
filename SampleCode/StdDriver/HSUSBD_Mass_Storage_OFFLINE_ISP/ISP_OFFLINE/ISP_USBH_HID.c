@@ -6,13 +6,19 @@
 #include "hal_api.h"
 #include "usbh_lib.h"
 #include "usbh_hid.h"
-volatile  unsigned char  has_out_data = 0;
-HID_DEV_T   *g_hid_list[CONFIG_HID_MAX_DEV];
-HID_DEV_T    *hdev, *hdev_list;
+
+volatile unsigned char has_out_data = 0;
+HID_DEV_T *g_hid_list[CONFIG_HID_MAX_DEV];
+HID_DEV_T *hdev, *hdev_list;
+unsigned char USB_HOST_recbuf[64];
+unsigned char USB_HOST_sendbuf[64];
+uint8_t g_buff_pool[1024] __attribute__((aligned(32)));
+
 extern void enable_USB_HOST_tick(int ticks_per_second);
-void  dump_buff_hex(uint8_t *pucBuff, int nBytes)
+
+void dump_buff_hex(uint8_t *pucBuff, int nBytes)
 {
-    int     nIdx, i;
+    int nIdx, i;
 
     nIdx = 0;
 
@@ -32,19 +38,18 @@ void  dump_buff_hex(uint8_t *pucBuff, int nBytes)
 
     printf("\n");
 }
-unsigned char USB_HOST_recbuf[64];
-void  int_read_callback(HID_DEV_T *hdev, uint16_t ep_addr, int status, uint8_t *rdata, uint32_t data_len)
+
+void int_read_callback(HID_DEV_T *hdev, uint16_t ep_addr, int status, uint8_t *rdata, uint32_t data_len)
 {
     int i;
-    //   memcpy((uint8_t *)rcvbuf, rdata, 64);
+    // memcpy((uint8_t *)rcvbuf, rdata, 64);
     has_out_data = 1;
 
     for (i = 0; i < 64; i++)
         USB_HOST_recbuf[i] = rdata[i];
 }
 
-unsigned char USB_HOST_sendbuf[64];
-void  int_write_callback(HID_DEV_T *hdev, uint16_t ep_addr, int status, uint8_t *wbuff, uint32_t *buff_size)
+void int_write_callback(HID_DEV_T *hdev, uint16_t ep_addr, int status, uint8_t *wbuff, uint32_t *buff_size)
 {
     int i;
 
@@ -56,11 +61,10 @@ void  int_write_callback(HID_DEV_T *hdev, uint16_t ep_addr, int status, uint8_t 
     *buff_size = 64;
 }
 
-uint8_t  g_buff_pool[1024] __attribute__((aligned(32)));
-int  init_hid_device(HID_DEV_T *hdev)
+int init_hid_device(HID_DEV_T *hdev)
 {
-    uint8_t   *data_buff;
-    int       i, ret;
+    uint8_t *data_buff;
+    int ret;
 
     data_buff = (uint8_t *)((uint32_t)g_buff_pool);
 
@@ -105,8 +109,7 @@ int  init_hid_device(HID_DEV_T *hdev)
     }
 
 #endif
-#if 1
-    printf("\nUSBH_HidStartIntReadPipe...\n");
+
     ret = usbh_hid_start_int_read(hdev, 0x81, int_read_callback);
 
     if (ret != HID_RET_OK)
@@ -114,12 +117,20 @@ int  init_hid_device(HID_DEV_T *hdev)
     else
         printf("Interrupt in transfer started...\n");
 
-#endif
     return 0;
 }
+
+int uninit_hid_device(HID_DEV_T *hdev)
+{
+    usbh_hid_stop_int_write(hdev, 0x2);
+    usbh_hid_stop_int_read(hdev, 0x81);
+
+    return 0;
+}
+
 void update_hid_device_list(HID_DEV_T *hdev)
 {
-    int  i = 0;
+    int i = 0;
     memset(g_hid_list, 0, sizeof(g_hid_list));
 
     while ((i < CONFIG_HID_MAX_DEV) && (hdev != NULL))
@@ -140,14 +151,7 @@ ErrNo USBH_HID_WRITE(io_handle_t handle, const void *buf, uint32 *len)
     for (i = 0; i < 64; i++)
         USB_HOST_sendbuf[i] = pSrc[i];
 
-   // printf("write:%d\n\r", usbh_hid_start_int_write(hdev, 0x2, int_write_callback));
-
-    if (usbh_hid_start_int_write(hdev, 0x2, int_write_callback) != HID_RET_OK)
-    {
-        printf("\n[FAIL] ==> Interrupt out transfer started...\n");
-
-     }
-
+    usbh_hid_start_int_write(hdev, 0x2, int_write_callback, 0);
 
     return ENOERR;
 }
@@ -157,24 +161,20 @@ ErrNo USBH_HID_READ(io_handle_t handle, void *buf, uint32 *len)
     usbh_pooling_hubs();
     uint8_t *pSrc;
     int i;
+    uint32_t t0;
+
     pSrc = (uint8_t *)buf;
 
-    int        ret;
-    //ret = usbh_hid_start_int_read(hdev, 0x81, int_read_callback);
-    usbh_pooling_hubs();
-    // if (ret != HID_RET_OK)
-    //    printf("usbh_hid_start_int_read failed!\n");
+    t0 = get_ticks();
 
     while (has_out_data == 0)
     {
         usbh_pooling_hubs();
+
+        if ((get_ticks() - t0) > 500)
+            return ETO;
     }
 
-    usbh_hid_stop_int_write(hdev, 0x02) ;
-    //usbh_hid_stop_int_read(hdev, 0x02) ;
-    usbh_pooling_hubs();
-
-    ///CLK_SysTickDelay(50000);
     for (i = 0; i < 64; i++)
         pSrc[i] = USB_HOST_recbuf[i];
 
@@ -192,7 +192,7 @@ ErrNo USBH_HID_Config(void *priv)
 
     while (1)
     {
-        if (usbh_pooling_hubs())             /* USB Host port detect polling and management */
+        if (usbh_pooling_hubs()) /* USB Host port detect polling and management */
         {
             printf("\n Has hub events.\n");
             hdev = usbh_hid_get_device_list();
@@ -202,11 +202,22 @@ ErrNo USBH_HID_Config(void *priv)
                 init_hid_device(hdev);
                 update_hid_device_list(hdev_list);
                 usbh_memory_used();
-                break;
             }
 
-
+            break;
         }
+    }
+
+    return ENOERR;
+}
+
+ErrNo USBH_HID_UnConfig(void *priv)
+{
+    if (hdev != NULL)
+    {
+        uninit_hid_device(hdev);
+
+        disconnect_device(((IFACE_T *)(hdev->iface))->udev);
     }
 
     return ENOERR;

@@ -420,7 +420,7 @@ static void  hid_read_irq(UTR_T *utr)
 
     if (hdev->read_func && utr->xfer_len)
         hdev->read_func(hdev, utr->ep->bEndpointAddress, utr->status, utr->buff, utr->xfer_len);
-#if 1
+
     utr->xfer_len = 0;
     ret = usbh_int_xfer(utr);
     if (ret)
@@ -431,7 +431,6 @@ static void  hid_read_irq(UTR_T *utr)
         usbh_free_mem(utr->buff, utr->data_len);
         free_utr(utr);
     }
-		#endif
 }
 
 /*
@@ -442,7 +441,7 @@ static void  hid_write_irq(UTR_T *utr)
     HID_DEV_T     *hdev;
     int           ret;
 
-    //HID_DBGMSG("hid_write_irq. %d\n", urb->actual_length);
+    //HID_DBGMSG("hid_write_irq. %d\n", utr->xfer_len);
 
     hdev = (HID_DEV_T *)utr->context;
 
@@ -458,7 +457,7 @@ static void  hid_write_irq(UTR_T *utr)
         utr->data_len = utr->ep->wMaxPacketSize;
         hdev->write_func(hdev, utr->ep->bEndpointAddress, utr->status, utr->buff, &(utr->data_len));
     }
-#if 0
+
     utr->xfer_len = 0;
     ret = usbh_int_xfer(utr);
     if (ret)
@@ -467,7 +466,6 @@ static void  hid_write_irq(UTR_T *utr)
         hdev->write_func(hdev, utr->ep->bEndpointAddress, ret, utr->buff, &(utr->data_len));
         free_utr(utr);
     }
-		#endif
 }
 
 
@@ -622,12 +620,13 @@ int32_t usbh_hid_stop_int_read(HID_DEV_T *hdev, uint8_t ep_addr)
  *  @retval   0           Success
  *  @retval   Otherwise   Failed
  */
-int32_t usbh_hid_start_int_write(HID_DEV_T *hdev, uint8_t ep_addr, HID_IW_FUNC *func)
+int32_t usbh_hid_start_int_write(HID_DEV_T *hdev, uint8_t ep_addr, HID_IW_FUNC *func, int32_t irq)
 {
     IFACE_T    *iface = (IFACE_T *)hdev->iface;
     UTR_T      *utr;
     EP_INFO_T  *ep;
     int        i, ret;
+    int        is_running = 0;
 
     if ((!iface) || (!iface->udev))
         return HID_RET_DEV_NOT_FOUND;
@@ -640,7 +639,8 @@ int32_t usbh_hid_start_int_write(HID_DEV_T *hdev, uint8_t ep_addr, HID_IW_FUNC *
         utr = hdev->utr_list[i];
         if ((utr != NULL) && (utr->ep != NULL) && (utr->ep->bEndpointAddress == ep_addr))
         {
-            return HID_RET_XFER_IS_RUNNING;      /* transfer of this pipe is running      */
+            is_running = 1;    /* transfer of this pipe is running      */
+            break;
         }
     }
 
@@ -652,24 +652,31 @@ int32_t usbh_hid_start_int_write(HID_DEV_T *hdev, uint8_t ep_addr, HID_IW_FUNC *
     if (ep == NULL)
         return USBH_ERR_EP_NOT_FOUND;
 
-    utr = alloc_utr(iface->udev);
-    if (!utr)
-        return USBH_ERR_MEMORY_OUT;
-
-    utr->buff = usbh_alloc_mem(ep->wMaxPacketSize);
-    if (utr->buff == NULL)
+    if (is_running == 0)
     {
-        free_utr(utr);
-        return USBH_ERR_MEMORY_OUT;
+        utr = alloc_utr(iface->udev);
+        if (!utr)
+            return USBH_ERR_MEMORY_OUT;
+
+        utr->buff = usbh_alloc_mem(ep->wMaxPacketSize);
+        if (utr->buff == NULL)
+        {
+            free_utr(utr);
+            return USBH_ERR_MEMORY_OUT;
+        }
+
+        hdev->write_func = func;
+
+        utr->context = hdev;
+        utr->ep = ep;
+        utr->data_len = ep->wMaxPacketSize;
+        utr->xfer_len = 0;
+        utr->func = (irq > 0) ? hid_write_irq : NULL;
     }
-
-    hdev->write_func = func;
-
-    utr->context = hdev;
-    utr->ep = ep;
-    utr->data_len = ep->wMaxPacketSize;
-    utr->xfer_len = 0;
-    utr->func = hid_write_irq;
+    else
+    {
+        utr->xfer_len = 0;
+    }
 
     /* first time interrupt write call-back to get first data packet */
     func(hdev, ep->bEndpointAddress, 0, utr->buff, &(utr->data_len));
@@ -682,18 +689,21 @@ int32_t usbh_hid_start_int_write(HID_DEV_T *hdev, uint8_t ep_addr, HID_IW_FUNC *
         return HID_RET_IO_ERR;
     }
 
-    i = get_free_utr_slot(hdev);
-    if (i < 0)
+    if (is_running == 0)
     {
-        HID_DBGMSG("Error - No free HID slot!\n");
-        usbh_quit_utr(utr);
-        usbh_free_mem(utr->buff, utr->data_len);
-        free_utr(utr);
-        return USBH_ERR_MEMORY_OUT;         /* no free UTR slot.                          */
-    }
-    else
-    {
-        hdev->utr_list[i] = utr;
+        i = get_free_utr_slot(hdev);
+        if (i < 0)
+        {
+            HID_DBGMSG("Error - No free HID slot!\n");
+            usbh_quit_utr(utr);
+            usbh_free_mem(utr->buff, utr->data_len);
+            free_utr(utr);
+            return USBH_ERR_MEMORY_OUT;         /* no free UTR slot.                          */
+        }
+        else
+        {
+            hdev->utr_list[i] = utr;
+        }
     }
 
     return HID_RET_OK;
