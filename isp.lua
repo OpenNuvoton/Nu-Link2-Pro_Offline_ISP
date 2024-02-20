@@ -49,13 +49,6 @@ print(string.format("config0=0x%x",config0))
 config1=(tb[5]<<24)|(tb[6]<<16)|(tb[7]<<8)|tb[8]
 print(string.format("config1=0x%x",config1))
 
---read target chip boot mode
-if(ISP_CmdGetFlashMode()==2) then
-print("MCU in LDROM")
-else
-print("MCU in APROM")
-end
-
 --set program
 ISP_SET_PFILE(File_name)
 
