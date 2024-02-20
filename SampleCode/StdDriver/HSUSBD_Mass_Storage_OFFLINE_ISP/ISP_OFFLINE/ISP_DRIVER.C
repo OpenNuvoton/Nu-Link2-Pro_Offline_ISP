@@ -54,6 +54,7 @@ CHAR_DEVIO_TABLE(
 extern ErrNo USBH_HID_WRITE(io_handle_t handle, const void *buf, uint32 *len);
 extern ErrNo USBH_HID_READ(io_handle_t handle, void *buf, uint32 *len);
 extern ErrNo USBH_HID_Config(void *priv);
+extern ErrNo USBH_HID_UnConfig(void *priv);
 
 CHAR_DEVIO_TABLE(
     USBH_HID_Driver,
@@ -64,12 +65,12 @@ CHAR_DEVIO_TABLE(
 
 devtab_entry_t DevTab[] =
 {
-    UART_NAME_STRING, &UART_Driver, UART_Config,
-    CAN_NAME_STRING, &CAN_Driver, CAN_Config,
-    SPI_NAME_STRING, &SPI_Driver, SPI_Config,
-    I2C_NAME_STRING, &I2C_Driver, I2C_Config,
-    RS485_NAME_STRING, &RS485_Driver, RS485_Config,
-    USBH_HID_NAME_STRING, &USBH_HID_Driver, USBH_HID_Config,
+    UART_NAME_STRING, &UART_Driver, UART_Config, NULL,
+    CAN_NAME_STRING, &CAN_Driver, CAN_Config, NULL,
+    SPI_NAME_STRING, &SPI_Driver, SPI_Config, NULL,
+    I2C_NAME_STRING, &I2C_Driver, I2C_Config, NULL,
+    RS485_NAME_STRING, &RS485_Driver, RS485_Config, NULL,
+    USBH_HID_NAME_STRING, &USBH_HID_Driver, USBH_HID_Config, USBH_HID_UnConfig,
 };
 
 static int io_compare(const char *n1, const char *n2, const char **ptr)
@@ -134,6 +135,24 @@ ErrNo  io_open(const char *dev_name, io_handle_t *io_handle)
         }
 
         p_devtab_entry++;
+    }
+
+    return -ENOENT;
+}
+
+ErrNo io_close(io_handle_t *io_handle)
+{
+    if (io_handle != NULL)
+    {
+        devtab_entry_t *p_devtab_entry = (devtab_entry_t *)*io_handle;
+        ErrNo re;
+
+        if (p_devtab_entry->uninit)
+        {
+            re = p_devtab_entry->uninit((void *)p_devtab_entry);
+
+            return re;
+        }
     }
 
     return -ENOENT;

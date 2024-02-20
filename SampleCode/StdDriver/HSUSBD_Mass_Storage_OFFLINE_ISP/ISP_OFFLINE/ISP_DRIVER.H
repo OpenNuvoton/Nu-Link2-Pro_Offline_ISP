@@ -1,9 +1,10 @@
-
 typedef void *io_handle_t;
 typedef unsigned int   uint32;
 typedef unsigned char   uint8_t;
 typedef signed int ErrNo;
+
 #define NULL 0
+
 typedef struct
 {
     ErrNo(*write)(io_handle_t handle,
@@ -19,7 +20,7 @@ typedef struct
     const   char        *name;
     const   devio_table_t *handlers;
     ErrNo(*init)(void *);
-
+    ErrNo(*uninit)(void *);
 } devtab_entry_t;
 
 #define CHAR_DEVIO_TABLE(_l,_write,_read,_package)    \
@@ -45,7 +46,9 @@ typedef struct
 #define SPI_NAME_STRING                            "SPI0"
 #define RS485_NAME_STRING                            "RS4850"
 #define USBH_HID_NAME_STRING                            "USBH_HID"
+
 extern ErrNo  io_open(const char *dev_name, io_handle_t *io_handle);
+extern ErrNo io_close(io_handle_t *io_handle);
 extern ErrNo io_write(io_handle_t handle, const void *buf, uint32 *len);
 extern ErrNo io_read(io_handle_t handle, void *buf, uint32 *len);
 extern int str_compare(const char *n1, const char *n2);

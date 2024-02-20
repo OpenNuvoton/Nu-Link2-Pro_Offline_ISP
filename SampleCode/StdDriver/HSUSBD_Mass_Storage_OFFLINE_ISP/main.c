@@ -35,6 +35,8 @@ extern void SpiInit(void);
 extern void enable_USB_HOST_tick(int ticks_per_second);
 #define ISP_LED_ON PC6=0
 #define ISP_LED_OFF PC6=1
+#define OFFLINE_FLAG  	 0x00060000UL
+#define OFFLINE_COUNT    0x00060004UL
 #define BUSY PB9
 #define PASS PB8
 unsigned char storage = 0;
@@ -42,7 +44,6 @@ unsigned char button_start = 0;
 FATFS  _FatfsVolSDHC1;
 FATFS  _FatfsVolSPI_FLASH;
 FATFS  _FatfsVolUSBDISK;
-
 
 /*--------------------------------------------------------------------------*/
 void SYS_Init(void)
@@ -91,7 +92,6 @@ void SYS_Init(void)
     SYS->GPA_MFPL &= ~(SYS_GPA_MFPL_PA0MFP_Msk | SYS_GPA_MFPL_PA1MFP_Msk);
     SYS->GPA_MFPL |= (SYS_GPA_MFPL_PA0MFP_UART0_RXD | SYS_GPA_MFPL_PA1MFP_UART0_TXD);
 
-
     /* select multi-function pin */
     SYS->GPG_MFPH &= ~(SYS_GPG_MFPH_PG13MFP_Msk     | SYS_GPG_MFPH_PG14MFP_Msk     | SYS_GPG_MFPH_PG11MFP_Msk      | SYS_GPG_MFPH_PG12MFP_Msk);
     SYS->GPG_MFPH |= (SYS_GPG_MFPH_PG13MFP_SD1_CMD | SYS_GPG_MFPH_PG14MFP_SD1_CLK | SYS_GPG_MFPH_PG11MFP_SD1_DAT1 | SYS_GPG_MFPH_PG12MFP_SD1_DAT0);
@@ -109,7 +109,6 @@ void SYS_Init(void)
 
     CLK_SetModuleClock(TMR0_MODULE, CLK_CLKSEL1_TMR0SEL_HXT, 0);
     /* User can use SystemCoreClockUpdate() to calculate PllClock, SystemCoreClock and CycylesPerUs automatically. */
-
 
     CLK_EnableModuleClock(USBH_MODULE);
 
@@ -175,7 +174,6 @@ int32_t main(void)
     UART_Open(UART0, 115200);
     SpiInit();
     ISP_Bridge_Init();
-		FMC_Open();
 
     HSUSBD_Open(&gsHSInfo, MSC_ClassRequest, NULL);
 
@@ -276,24 +274,24 @@ int32_t main(void)
 
     /* Enable USBD interrupt */
     NVIC_EnableIRQ(USBD20_IRQn);
-	
-		uint32 diskflag = 1; 
-		if ((FMC_Read(0x00060000) & 0xF0000000)== 0x10000000)
-			 diskflag = 0;
-		
-		uint32_t offline_flag, limit_count;
-	  uint32_t blk, order, msk;
-		offline_flag = FMC_Read(0x00060000);
-		limit_count = FMC_Read(0x00060004) - 1;
-		// read limit_count, offline_count
-		blk = (limit_count / 32);
-		order = (limit_count % 32);
-		msk = (0x1ul << order); 
-		if((FMC_Read(0x00060008 + 4 * blk) & msk) == 0 && offline_flag == 0x11111111){
-				printf("Program count is reach limit.\n\r");
-				BUSY = 0;
-		}
-		
+
+    SYS_UnlockReg();
+    FMC_Open(); 
+    FMC_ENABLE_AP_UPDATE();	
+    
+    uint32_t offline_flag, limit_count;
+    offline_flag = FMC_Read(OFFLINE_FLAG);
+    limit_count = FMC_Read(OFFLINE_COUNT);
+    
+    if (offline_flag == 0x12345678 && limit_count == 0){
+        printf("Program count is reach limit.\n\r");
+        BUSY = 0;
+    }
+    
+    FMC_DISABLE_AP_UPDATE(); 
+    FMC_Close(); 
+    SYS_LockReg();
+    
     while (1)
     {
         //  SYS_UnlockReg();
@@ -304,8 +302,8 @@ int32_t main(void)
             while (PC7 == 0); //wait for button release
 
             button_start = 0; //clear button
-						BUSY = 1;
-						PASS = 1;
+            BUSY = 1;
+            PASS = 1;
             NVIC_DisableIRQ(USBD20_IRQn);
             NVIC_DisableIRQ(GPC_IRQn);
 
@@ -337,39 +335,36 @@ int32_t main(void)
     {
         CLK_Idle();
 
-        if (g_hsusbd_Configured && diskflag)
+        if (g_hsusbd_Configured && offline_flag != 0x12345678)
             MSC_ProcessCmd();
 
         if (button_start == 1)
         {
             while (PC7 == 0); //wait for button release
-						
+            
             button_start = 0; //clear button
-						
-						BUSY = 1;
-						PASS = 1;
-						NVIC_DisableIRQ(USBD20_IRQn);
-						NVIC_DisableIRQ(GPC_IRQn);
+            BUSY = 1;
+            PASS = 1;
+            NVIC_DisableIRQ(USBD20_IRQn);
+            NVIC_DisableIRQ(GPC_IRQn);
 
-						if (load_lua_script() == 0)
-						{							
-								L = luaL_newstate();
-								luaopen_base(L);
-								luaopen_mylib(L);
-								luaL_openlibs(L);
-								printf("run lua\n\r");
-								int k = luaL_dostring(L, LUA_SCRIPT_GLOBAL);
-								if (k != 0){
-									printf("error!");
-								}
-								//luaL_dostring(L, Buff);
-								lua_close(L);
-								printf("lua end\n\r");
-						}
+            if (load_lua_script() == 0)
+            {
+                L = luaL_newstate();
+                luaopen_base(L);
+                luaopen_mylib(L);
+                luaL_openlibs(L);
+                printf("run lua\n\r");
+                int k = luaL_dostring(L, LUA_SCRIPT_GLOBAL);
+                if (k != 0) printf("error!");
+                //luaL_dostring(L, Buff);
+                lua_close(L);
+                printf("lua end\n\r");
+            }
 
-						NVIC_EnableIRQ(USBD20_IRQn);
-						NVIC_EnableIRQ(GPC_IRQn);
-					}
+            NVIC_EnableIRQ(USBD20_IRQn);
+            NVIC_EnableIRQ(GPC_IRQn);
+        }
     }
 }
 

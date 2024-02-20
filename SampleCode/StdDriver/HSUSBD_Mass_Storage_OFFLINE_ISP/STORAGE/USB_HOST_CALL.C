@@ -1,8 +1,6 @@
 #include "NuMicro.h"
 //USB HOST
 volatile uint32_t  g_tick_cnt;
-uint32_t           g_t0;
-
 
 void TMR0_IRQHandler(void)
 {
@@ -20,34 +18,11 @@ uint32_t get_ticks()
 void enable_USB_HOST_tick(int ticks_per_second)
 {
     g_tick_cnt = 0;
-    TIMER_Open(TIMER0, TIMER_PERIODIC_MODE, 10);
+    TIMER_Open(TIMER0, TIMER_PERIODIC_MODE, 100);
     TIMER_EnableInt(TIMER0);
     NVIC_EnableIRQ(TMR0_IRQn);
     TIMER_Start(TIMER0);
 }
-#if  0
-void SysTick_Handler(void)
-{
-
-}
-
-void enable_sys_tick(int ticks_per_second)
-{
-    g_tick_cnt = 0;
-
-    if (SysTick_Config(SystemCoreClock / ticks_per_second))
-    {
-        /* Setup SysTick Timer for 1 second interrupts  */
-        printf("Set system tick error!!\n");
-
-        while (1);
-    }
-}
-
-
-
-#endif
-
 
 //for usb host
 void delay_us(int usec)

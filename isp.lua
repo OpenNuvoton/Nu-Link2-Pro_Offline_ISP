@@ -5,8 +5,7 @@ print(temp)
 
 --ISP_AP_FILE_CHECKSUM for read file size
 filesize=ISP_AP_FILE_SIZE(File_name)
-if (filesize==0)
-then
+if (filesize==0) then
 print("no file exit")
 return
 end
@@ -22,13 +21,12 @@ print(temp)
 --initial interface 2 SPI
 --initial interface 3 I2C
 --initial interface 4 RS485
---initial interface 5 USB
+--initial interface 5 USBH
 ISP_INTERFACE_INIT(5)
 print("sync:")
 
 --sync isp protocol package
-if(ISP_CmdSyncPackno()==1)
-then
+if(ISP_CmdSyncPackno()==1) then
 print("sync false")
 return
 end
@@ -49,11 +47,10 @@ tb=ISP_CmdGetConfig()
 local config0=(tb[1]<<24)|(tb[2]<<16)|(tb[3]<<8)|tb[4]
 print(string.format("config0=0x%x",config0))
 config1=(tb[5]<<24)|(tb[6]<<16)|(tb[7]<<8)|tb[8]
-print(string.format("config0=0x%x",config1))
+print(string.format("config1=0x%x",config1))
 
 --read target chip boot mode
-if(ISP_CmdGetFlashMode()==2)
-then
+if(ISP_CmdGetFlashMode()==2) then
 print("MCU in LDROM")
 else
 print("MCU in APROM")
@@ -66,12 +63,11 @@ ISP_SET_PFILE(File_name)
 ISP_SET_LIMIT(100)
 
 --do isp program flow
-if(ISP_PROGRAM(0,filesize)==0)
-then
+if(ISP_PROGRAM(0,filesize)==0) then
 print("program pass")
-ISP_HideDiskFlagOn()
 end
 
+ISP_INTERFACE_UNINIT()
 end)
 if not status then
 print(err);
