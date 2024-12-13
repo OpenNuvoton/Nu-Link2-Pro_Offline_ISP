@@ -3,7 +3,8 @@
  * @version  V3.00
  * @brief    M480 series EPWM driver header file
  *
- * @copyright (C) 2016 Nuvoton Technology Corp. All rights reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ * @copyright (C) 2016-2020 Nuvoton Technology Corp. All rights reserved.
  *****************************************************************************/
 #ifndef __EPWM_H__
 #define __EPWM_H__
@@ -188,6 +189,14 @@ extern "C"
 #define EPWM_CLKSRC_TIMER1                        (2U)    /*!< EPWM Clock source selects to TIMER1 overflow \hideinitializer */
 #define EPWM_CLKSRC_TIMER2                        (3U)    /*!< EPWM Clock source selects to TIMER2 overflow \hideinitializer */
 #define EPWM_CLKSRC_TIMER3                        (4U)    /*!< EPWM Clock source selects to TIMER3 overflow \hideinitializer */
+
+/*---------------------------------------------------------------------------------------------------------*/
+/*  Fault Detect Clock Source Select Constant Definitions                                                  */
+/*---------------------------------------------------------------------------------------------------------*/
+#define EPWM_FDCTL_FDCKSEL_CLK_DIV_1              (0UL << EPWM_FDCTL0_FDCKSEL_Pos)    /*!<  Fault detect clock selects to fault detect clock divided by 1 \hideinitializer */
+#define EPWM_FDCTL_FDCKSEL_CLK_DIV_2              (1UL << EPWM_FDCTL0_FDCKSEL_Pos)    /*!<  Fault detect clock selects to fault detect clock divided by 2 \hideinitializer */
+#define EPWM_FDCTL_FDCKSEL_CLK_DIV_4              (2UL << EPWM_FDCTL0_FDCKSEL_Pos)    /*!<  Fault detect clock selects to fault detect clock divided by 4 \hideinitializer */
+#define EPWM_FDCTL_FDCKSEL_CLK_DIV_8              (3UL << EPWM_FDCTL0_FDCKSEL_Pos)    /*!<  Fault detect clock selects to fault detect clock divided by 8 \hideinitializer */
 
 
 /*@}*/ /* end of group EPWM_EXPORTED_CONSTANTS */
@@ -541,6 +550,8 @@ void EPWM_Stop(EPWM_T *epwm, uint32_t u32ChannelMask);
 void EPWM_ForceStop(EPWM_T *epwm, uint32_t u32ChannelMask);
 void EPWM_EnableADCTrigger(EPWM_T *epwm, uint32_t u32ChannelNum, uint32_t u32Condition);
 void EPWM_DisableADCTrigger(EPWM_T *epwm, uint32_t u32ChannelNum);
+int32_t EPWM_EnableADCTriggerPrescale(EPWM_T *epwm, uint32_t u32ChannelNum, uint32_t u32Prescale, uint32_t u32PrescaleCnt);
+void EPWM_DisableADCTriggerPrescale(EPWM_T *epwm, uint32_t u32ChannelNum);
 void EPWM_ClearADCTriggerFlag(EPWM_T *epwm, uint32_t u32ChannelNum, uint32_t u32Condition);
 uint32_t EPWM_GetADCTriggerFlag(EPWM_T *epwm, uint32_t u32ChannelNum);
 void EPWM_EnableDACTrigger(EPWM_T *epwm, uint32_t u32ChannelNum, uint32_t u32Condition);
@@ -606,6 +617,18 @@ void EPWM_SetBrakePinSource(EPWM_T *epwm, uint32_t u32BrakePinNum, uint32_t u32S
 void EPWM_SetLeadingEdgeBlanking(EPWM_T *epwm, uint32_t u32TrigSrcSel, uint32_t u32TrigType, uint32_t u32BlankingCnt, uint32_t u32BlankingEnable);
 uint32_t EPWM_GetWrapAroundFlag(EPWM_T *epwm, uint32_t u32ChannelNum);
 void EPWM_ClearWrapAroundFlag(EPWM_T *epwm, uint32_t u32ChannelNum);
+void EPWM_EnableFaultDetect(EPWM_T *epwm, uint32_t u32ChannelNum, uint32_t u32AfterPrescaler, uint32_t u32ClkSel);
+void EPWM_DisableFaultDetect(EPWM_T *epwm, uint32_t u32ChannelNum);
+void EPWM_EnableFaultDetectOutput(EPWM_T *epwm, uint32_t u32ChannelNum);
+void EPWM_DisableFaultDetectOutput(EPWM_T *epwm, uint32_t u32ChannelNum);
+void EPWM_EnableFaultDetectDeglitch(EPWM_T *epwm, uint32_t u32ChannelNum, uint32_t u32DeglitchSmpCycle);
+void EPWM_DisableFaultDetectDeglitch(EPWM_T *epwm, uint32_t u32ChannelNum);
+void EPWM_EnableFaultDetectMask(EPWM_T *epwm, uint32_t u32ChannelNum, uint32_t u32MaskCnt);
+void EPWM_DisableFaultDetectMask(EPWM_T *epwm, uint32_t u32ChannelNum);
+void EPWM_EnableFaultDetectInt(EPWM_T *epwm, uint32_t u32ChannelNum);
+void EPWM_DisableFaultDetectInt(EPWM_T *epwm, uint32_t u32ChannelNum);
+void EPWM_ClearFaultDetectInt(EPWM_T *epwm, uint32_t u32ChannelNum);
+uint32_t EPWM_GetFaultDetectInt(EPWM_T *epwm, uint32_t u32ChannelNum);
 
 /*@}*/ /* end of group EPWM_EXPORTED_FUNCTIONS */
 

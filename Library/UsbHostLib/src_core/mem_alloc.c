@@ -3,7 +3,8 @@
  * @version  V1.10
  * @brief   USB host library memory allocation functions.
  *
- * @copyright (C) 2017 Nuvoton Technology Corp. All rights reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ * @copyright (C) 2017-2020 Nuvoton Technology Corp. All rights reserved.
 *****************************************************************************/
 
 #include <stdio.h>
@@ -70,7 +71,7 @@ void usbh_memory_init(void)
     _mem_pool_used = 0;
     _sidx = 0;
 
-    //g_udev_list = NULL;
+    g_udev_list = NULL;
 
     memset(_dev_addr_pool, 0, sizeof(_dev_addr_pool));
     _device_addr = 1;
@@ -381,7 +382,7 @@ qTD_T * alloc_ehci_qTD(UTR_T *utr)
             memset(qtd, 0, sizeof(*qtd));
             qtd->Next_qTD     = QTD_LIST_END;
             qtd->Alt_Next_qTD = QTD_LIST_END;
-            qtd->Token        = 0x1197B7F; // QTD_STS_HALT;  visit_qtd() will not remove a qTD with this mark. It means the qTD still not ready for transfer.
+            qtd->Token        = 0x1197B3F; // QTD_STS_HALT;  visit_qtd() will not remove a qTD with this mark. It means the qTD still not ready for transfer.
             qtd->utr = utr;
             mem_debug("[ALLOC] [qTD] - 0x%x\n", (int)qtd);
             return qtd;

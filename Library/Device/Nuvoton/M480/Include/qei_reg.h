@@ -3,7 +3,8 @@
  * @version  V1.00
  * @brief    QEI register definition header file
  *
- * @copyright (C) 2017 Nuvoton Technology Corp. All rights reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ * @copyright (C) 2017-2020 Nuvoton Technology Corp. All rights reserved.
  *****************************************************************************/
 #ifndef __QEI_REG_H__
 #define __QEI_REG_H__
@@ -171,7 +172,7 @@ typedef struct
      * |        |          |Note: This bit is only cleared by writing 1 to it.
      * |[2]     |OVUNF     |QEI Counter Overflow or Underflow Flag
      * |        |          |Flag is set by hardware while CNT(QEI_CNT[31:0]) overflows from 0xFFFF_FFFF to zero in free-counting mode or from the CNTMAX (QEI_CNTMAX[31:0]) to zero in compare-counting mode
-    * |        |          |Similarly, the flag is set while QEI counter underflows from zero to 0xFFFF_FFFF or CNTMAX (QEI_CNTMAX[31:0]).
+     * |        |          |Similarly, the flag is set while QEI counter underflows from zero to 0xFFFF_FFFF or CNTMAX (QEI_CNTMAX[31:0]).
      * |        |          |0 = No overflow or underflow occurs in QEI counter.
      * |        |          |1 = QEI counter occurs counting overflow or underflow.
      * |        |          |Note: This bit is only cleared by writing 1 to it.

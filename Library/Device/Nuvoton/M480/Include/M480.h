@@ -5,7 +5,8 @@
  *           This file contains all the peripheral register's definitions,
  *           bits definitions and memory mapping for NuMicro M480 MCU.
  *
- * @copyright (C) 2017-2019 Nuvoton Technology Corp. All rights reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ * @copyright (C) 2022-2024 Nuvoton Technology Corp. All rights reserved.
  *****************************************************************************/
 /**
   \mainpage NuMicro M480 Driver Reference Guide
@@ -44,7 +45,7 @@
   *
   * <b>Copyright Notice</b>
   *
-  * Copyright (C) 2017-2019 Nuvoton Technology Corp. All rights reserved.
+  * Copyright (C) 2022-2024 Nuvoton Technology Corp. All rights reserved.
   */
 #ifndef __M480_H__
 #define __M480_H__
@@ -203,6 +204,7 @@ IRQn_Type;
 #include <stdint.h>
 
 
+#define __weak __attribute__((weak))
 
 #if defined ( __CC_ARM   )
 #pragma anon_unions
@@ -463,9 +465,10 @@ IRQn_Type;
   @{
  */
 
-typedef volatile unsigned char  vu8;        ///< Define 8-bit unsigned volatile data type
-typedef volatile unsigned short vu16;       ///< Define 16-bit unsigned volatile data type
-typedef volatile unsigned long  vu32;       ///< Define 32-bit unsigned volatile data type
+typedef volatile uint8_t  vu8;        ///< Define 8-bit unsigned volatile data type
+typedef volatile uint16_t vu16;       ///< Define 16-bit unsigned volatile data type
+typedef volatile uint32_t vu32;       ///< Define 32-bit unsigned volatile data type
+typedef volatile uint64_t vu64;       ///< Define 64-bit unsigned volatile data type
 
 /**
   * @brief Get a 8-bit unsigned value from specified address

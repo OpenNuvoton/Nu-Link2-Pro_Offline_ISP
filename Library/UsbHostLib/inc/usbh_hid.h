@@ -3,7 +3,8 @@
  * @version  V1.10
  * @brief    USB Host HID class driver header file.
  *
- * @copyright (C) 2017 Nuvoton Technology Corp. All rights reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ * @copyright (C) 2017-2020 Nuvoton Technology Corp. All rights reserved.
  ******************************************************************************/
 #ifndef  _USBH_HID_H_
 #define  _USBH_HID_H_
@@ -19,7 +20,7 @@ extern "C"
 /// @cond HIDDEN_SYMBOLS
 
 #define ENABLE_ERR_MSG          1
-#define ENABLE_DBG_MSG          1
+#define ENABLE_DBG_MSG          0
 
 #if ENABLE_ERR_MSG
 #define HID_ERRMSG   printf
@@ -48,8 +49,8 @@ extern "C"
   @{
 */
 
-#define CONFIG_HID_MAX_DEV          1      /*!< Maximum number of HID devices (interface) allowed at the same time.  */
-#define CONFIG_HID_DEV_MAX_PIPE     2      /*!< Maximum number of interrupt in/out pipes allowed per HID device      */
+#define CONFIG_HID_MAX_DEV          4      /*!< Maximum number of HID devices (interface) allowed at the same time.  */
+#define CONFIG_HID_DEV_MAX_PIPE     8      /*!< Maximum number of interrupt in/out pipes allowed per HID device      */
 
 /// @cond HIDDEN_SYMBOLS
 
@@ -307,6 +308,12 @@ typedef struct usbhid_mouse_event
     signed int    wheel_min;            /*!< Logical minimum of mouse wheel value              */
     signed int    wheel_max;            /*!< Logical maxmum of mouse wheel value               */
     signed int    wheel;                /*!< mouse wheel value                                 */
+    int           X_bits;               /*!< X axis bit resolution                             */
+    int           Y_bits;               /*!< Y axis bit resolution                             */
+    int           wheel_bits;           /*!< wheel bit resolution                              */
+    uint32_t      X_raw;                /*!< mouse report X axis raw data                      */
+    uint32_t      Y_raw;                /*!< mouse report Y axis raw data                      */
+    uint32_t      wheel_raw;            /*!< mouse report wheel raw data                       */
 } MOUSE_EVENT_T;
 
 typedef void (HID_MOUSE_FUNC)(struct usbhid_dev *hdev, MOUSE_EVENT_T *mouse);      /*!< HID mouse event callback \hideinitializer */

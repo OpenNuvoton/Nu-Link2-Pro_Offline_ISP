@@ -5,9 +5,9 @@
 #include "ISP_CMD.h"
 #include "ff.h"
 #define PACKET_SIZE 64
-__align(4) uint8_t rcvbuf[PACKET_SIZE];
-__align(4) uint8_t sendbuf[PACKET_SIZE];
-__align(4) uint8_t file_buffer[512];
+uint8_t __attribute__((aligned(4)))  rcvbuf[PACKET_SIZE];
+uint8_t __attribute__((aligned(4)))  sendbuf[PACKET_SIZE];
+uint8_t __attribute__((aligned(4)))  file_buffer[512];
 extern volatile unsigned char APROM_NAME[128];
 unsigned int g_packno = 1;
 unsigned short gcksum;
@@ -419,7 +419,8 @@ ErrNo UpdatedTargetFalsh(uint32_t in_startaddr, uint32_t in_file_totallen)
     if (str_compare(SPI_NAME_STRING, t->name))
     {
         //delay for erase
-        for (unsigned int i = 0; i < 2000; i++)
+				unsigned int i = 0;
+        for (i = 0; i < 2000; i++)
             CLK_SysTickDelay(2000);
 
     }
@@ -439,7 +440,8 @@ ErrNo UpdatedTargetFalsh(uint32_t in_startaddr, uint32_t in_file_totallen)
     if (str_compare(I2C_NAME_STRING, t->name))
     {
         //delay for erase
-        for (unsigned int i = 0; i < 5000; i++)
+			  unsigned int i = 0;
+        for (i = 0; i < 5000; i++)
             CLK_SysTickDelay(2000);
     }
 
@@ -452,7 +454,8 @@ ErrNo UpdatedTargetFalsh(uint32_t in_startaddr, uint32_t in_file_totallen)
 
     printf("Erase done!\n\r");
 
-    for (unsigned int i = 48; i < AP_file_totallen; i = i + 56)
+		unsigned int i = 48;
+    for (i = 48; i < AP_file_totallen; i = i + 56)
     {
         //reaf file cotext to file buffer
         if (((i - 48) % 448) == 0)

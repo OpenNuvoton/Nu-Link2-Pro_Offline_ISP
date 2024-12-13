@@ -3,7 +3,8 @@
  * @version  V2.00
  * @brief    M480 series EADC driver source file
  *
- * @copyright (C) 2016 Nuvoton Technology Corp. All rights reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ * @copyright (C) 2016-2020 Nuvoton Technology Corp. All rights reserved.
 *****************************************************************************/
 #include "NuMicro.h"
 
@@ -14,6 +15,8 @@
 /** @addtogroup EADC_Driver EADC Driver
   @{
 */
+
+int32_t g_EADC_i32ErrCode = 0;       /*!< EADC global error code */
 
 /** @addtogroup EADC_EXPORTED_FUNCTIONS EADC Exported Functions
   @{
@@ -28,14 +31,25 @@
   * @return None
   * @details This function is used to set analog input mode and enable A/D Converter.
   *         Before starting A/D conversion function, ADCEN bit (EADC_CTL[0]) should be set to 1.
-  * @note
+  * @note   This function sets g_EADC_i32ErrCode to EADC_TIMEOUT_ERR if PWUPRDY(EADC_PWRM[0]) is not set to 1
   */
 void EADC_Open(EADC_T *eadc, uint32_t u32InputMode)
 {
+    uint32_t u32Delay = SystemCoreClock; /* 1 second */
+
+    g_EADC_i32ErrCode = 0;
+
     eadc->CTL &= (~EADC_CTL_DIFFEN_Msk);
 
     eadc->CTL |= (u32InputMode | EADC_CTL_ADCEN_Msk);
-    while (!(eadc->PWRM & EADC_PWRM_PWUPRDY_Msk)) {}
+    while (!(eadc->PWRM & EADC_PWRM_PWUPRDY_Msk))
+    {
+        if (--u32Delay == 0)
+        {
+            g_EADC_i32ErrCode = EADC_TIMEOUT_ERR;
+            break;
+        }
+    }
 }
 
 /**
@@ -58,24 +72,26 @@ void EADC_Close(EADC_T *eadc)
   *                            - \ref EADC_FALLING_EDGE_TRIGGER          : STADC pin falling edge trigger
   *                            - \ref EADC_RISING_EDGE_TRIGGER           : STADC pin rising edge trigger
   *                            - \ref EADC_FALLING_RISING_EDGE_TRIGGER   : STADC pin both falling and rising edge trigger
-  *                            - \ref EADC_ADINT0_TRIGGER                : ADC ADINT0 interrupt EOC pulse trigger
-  *                            - \ref EADC_ADINT1_TRIGGER                : ADC ADINT1 interrupt EOC pulse trigger
+  *                            - \ref EADC_ADINT0_TRIGGER                : EADC ADINT0 interrupt EOC pulse trigger
+  *                            - \ref EADC_ADINT1_TRIGGER                : EADC ADINT1 interrupt EOC pulse trigger
   *                            - \ref EADC_TIMER0_TRIGGER                : Timer0 overflow pulse trigger
   *                            - \ref EADC_TIMER1_TRIGGER                : Timer1 overflow pulse trigger
   *                            - \ref EADC_TIMER2_TRIGGER                : Timer2 overflow pulse trigger
   *                            - \ref EADC_TIMER3_TRIGGER                : Timer3 overflow pulse trigger
-  *                            - \ref EADC_PWM0TG0_TRIGGER               : PWM0TG0 trigger
-  *                            - \ref EADC_PWM0TG1_TRIGGER               : PWM0TG1 trigger
-  *                            - \ref EADC_PWM0TG2_TRIGGER               : PWM0TG2 trigger
-  *                            - \ref EADC_PWM0TG3_TRIGGER               : PWM0TG3 trigger
-  *                            - \ref EADC_PWM0TG4_TRIGGER               : PWM0TG4 trigger
-  *                            - \ref EADC_PWM0TG5_TRIGGER               : PWM0TG5 trigger
-  *                            - \ref EADC_PWM1TG0_TRIGGER               : PWM1TG0 trigger
-  *                            - \ref EADC_PWM1TG1_TRIGGER               : PWM1TG1 trigger
-  *                            - \ref EADC_PWM1TG2_TRIGGER               : PWM1TG2 trigger
-  *                            - \ref EADC_PWM1TG3_TRIGGER               : PWM1TG3 trigger
-  *                            - \ref EADC_PWM1TG4_TRIGGER               : PWM1TG4 trigger
-  *                            - \ref EADC_PWM1TG5_TRIGGER               : PWM1TG5 trigger
+  *                            - \ref EADC_EPWM0TG0_TRIGGER              : EPWM0TG0 trigger
+  *                            - \ref EADC_EPWM0TG1_TRIGGER              : EPWM0TG1 trigger
+  *                            - \ref EADC_EPWM0TG2_TRIGGER              : EPWM0TG2 trigger
+  *                            - \ref EADC_EPWM0TG3_TRIGGER              : EPWM0TG3 trigger
+  *                            - \ref EADC_EPWM0TG4_TRIGGER              : EPWM0TG4 trigger
+  *                            - \ref EADC_EPWM0TG5_TRIGGER              : EPWM0TG5 trigger
+  *                            - \ref EADC_EPWM1TG0_TRIGGER              : EPWM1TG0 trigger
+  *                            - \ref EADC_EPWM1TG1_TRIGGER              : EPWM1TG1 trigger
+  *                            - \ref EADC_EPWM1TG2_TRIGGER              : EPWM1TG2 trigger
+  *                            - \ref EADC_EPWM1TG3_TRIGGER              : EPWM1TG3 trigger
+  *                            - \ref EADC_EPWM1TG4_TRIGGER              : EPWM1TG4 trigger
+  *                            - \ref EADC_EPWM1TG5_TRIGGER              : EPWM1TG5 trigger
+  *                            - \ref EADC_BPWM0TG_TRIGGER               : BPWM0TG trigger
+  *                            - \ref EADC_BPWM1TG_TRIGGER               : BPWM1TG trigger
   * @param[in] u32Channel Specifies the sample module channel, valid value are from 0 to 15.
   * @return None
   * @details Each of ADC control logic modules 0~15 which is configurable for ADC converter channel EADC_CH0~15 and trigger source.

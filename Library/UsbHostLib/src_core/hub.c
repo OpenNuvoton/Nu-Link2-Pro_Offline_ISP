@@ -3,7 +3,8 @@
  * @version  V1.10
  * @brief   USB Host library hub class driver.
  *
- * @copyright (C) 2017 Nuvoton Technology Corp. All rights reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ * @copyright (C) 2017-2020 Nuvoton Technology Corp. All rights reserved.
 *****************************************************************************/
 
 #include <stdio.h>
@@ -19,7 +20,8 @@
 
 /// @cond HIDDEN_SYMBOLS
 
-
+ HC_DRV_T    ohci_driver;
+ HC_DRV_T    ehci_driver;
 #define HUB_DBGMSG     printf
 //#define HUB_DBGMSG(...)
 
@@ -420,7 +422,7 @@ static int do_port_reset(HUB_DEV_T *hub, int port)
             if (((wPortStatus & PORT_S_CONNECTION) == 0) ||
                     ((wPortStatus & (PORT_S_CONNECTION | PORT_S_ENABLE)) == (PORT_S_CONNECTION | PORT_S_ENABLE)))
             {
-                clear_port_feature(hub, PORT_C_ENABLE, port); /* clear port enable change */
+                clear_port_feature(hub, FS_C_PORT_ENABLE, port); /* clear port enable change */
                 return USBH_OK;
             }
         }
@@ -545,7 +547,7 @@ static int  port_status_change(HUB_DEV_T *hub, int port)
             return ret;                     /* class command failed                       */
     }
 
-    if (wPortChange & FS_C_PORT_RESET)     /* have port reset change?                     */
+    if (wPortChange & PORT_C_RESET)         /* have port reset change?                     */
     {
         ret = clear_port_feature(hub, FS_C_PORT_RESET, port);        /* clear port change */
         if (ret < 0)

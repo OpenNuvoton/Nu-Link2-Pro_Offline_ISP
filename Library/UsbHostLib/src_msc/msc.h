@@ -3,7 +3,8 @@
  * @version  V1.00
  * @brief    M480 MCU USB Host mass storage class header
  *
- * @copyright (C) 2016 Nuvoton Technology Corp. All rights reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ * @copyright (C) 2017-2020 Nuvoton Technology Corp. All rights reserved.
  *****************************************************************************/
 #ifndef _USBH_MSC_H_
 #define _USBH_MSC_H_
@@ -23,8 +24,8 @@
 #endif
 
 
-#define USBDRV_0                  2      /* FATFS assigned USB disk drive volumn number base   */
-#define USBDRV_MAX                4      /* FATFS assigned USB disk drive volumn number end    */
+#define USBDRV_0                  3      /* FATFS assigned USB disk drive volumn number base   */
+#define USBDRV_MAX                9      /* FATFS assigned USB disk drive volumn number end    */
 #define USBDRV_CNT                (USBDRV_MAX - USBDRV_0 + 1)
 
 

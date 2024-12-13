@@ -3,7 +3,8 @@
  * @version  V1.10
  * @brief    USB Host library exported header file.
  *
- * @copyright (C) 2017 Nuvoton Technology Corp. All rights reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ * @copyright (C) 2017-2020 Nuvoton Technology Corp. All rights reserved.
  ******************************************************************************/
 #ifndef  _USBH_LIB_H_
 #define  _USBH_LIB_H_
@@ -139,6 +140,7 @@ typedef int (UAC_CB_FUNC)(struct uac_dev_t *dev, uint8_t *data, int len);    /*!
 /*                                                                  */
 /*------------------------------------------------------------------*/
 extern void usbh_core_init(void);
+extern void usbh_core_init_ex(int ovc_alv);
 extern int  usbh_pooling_hubs(void);
 extern void usbh_install_conn_callback(CONN_FUNC *conn_func, CONN_FUNC *disconn_func);
 extern void usbh_suspend(void);
@@ -186,7 +188,6 @@ extern int32_t  usbh_hid_set_protocol(struct usbhid_dev *hdev, uint8_t protocol)
 extern int32_t  usbh_hid_start_int_read(struct usbhid_dev *hdev, uint8_t ep_addr, HID_IR_FUNC *func);
 extern int32_t  usbh_hid_stop_int_read(struct usbhid_dev *hdev, uint8_t ep_addr);
 extern int32_t  usbh_hid_start_int_write(struct usbhid_dev *hdev, uint8_t ep_addr, HID_IW_FUNC *func);
-extern int32_t  usbh_hid_int_write_trigger(struct usbhid_dev *hdev, uint8_t ep_addr, HID_IW_FUNC *func);
 extern int32_t  usbh_hid_stop_int_write(struct usbhid_dev *hdev, uint8_t ep_addr);
 
 /*------------------------------------------------------------------*/

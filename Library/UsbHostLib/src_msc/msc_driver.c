@@ -3,7 +3,8 @@
  * @version  V1.00
  * @brief    Lightweight USB mass storage class driver
  *
- * @copyright (C) 2017 Nuvoton Technology Corp. All rights reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ * @copyright (C) 2017-2020 Nuvoton Technology Corp. All rights reserved.
 *****************************************************************************/
 
 #include <stdio.h>
@@ -25,7 +26,7 @@ MSC_T  *g_msc_list;       /* Global list of Mass Storage Class device. A multi-l
                              several instances appeared with different lun. */
 
 static volatile uint8_t  g_fat_drv_used[USBDRV_CNT];
-static TCHAR    _path[3] = { '2', ':', 0 };
+static TCHAR    _path[3] = { '3', ':', 0 };
 
 static void  fatfs_drive_int()
 {
@@ -110,7 +111,7 @@ static void get_max_lun(MSC_T *msc)
 {
     UDEV_T    *udev = msc->iface->udev;
     uint32_t  read_len;
-    uint8_t   buff[2];
+    uint8_t   buff[2] = { 0, 0 };
     int       ret;
 
     msc->max_lun = 0;
@@ -119,7 +120,7 @@ static void get_max_lun(MSC_T *msc)
     /* Issue GET MAXLUN MSC class command to get the maximum lun number                   */
     /*------------------------------------------------------------------------------------*/
     ret = usbh_ctrl_xfer(udev, REQ_TYPE_IN | REQ_TYPE_CLASS_DEV | REQ_TYPE_TO_IFACE,
-                         0xFE, 0, 0, 1, buff, &read_len, 200);
+                         0xFE, 0, msc->iface->if_num, 1, buff, &read_len, 200);
     if (ret < 0)
     {
         msc_debug_msg("Get Max Lun command failed! Assign 0...\n");
@@ -401,6 +402,8 @@ int  usbh_umas_reset_disk(int drv_no)
     UDEV_T     *udev;
 
     msc_debug_msg("usbh_umas_reset_disk ...\n");
+
+    usbh_pooling_hubs();
 
     msc = find_msc_by_drive(drv_no);
     if (msc == NULL)

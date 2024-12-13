@@ -3,7 +3,8 @@
  * @version  V2.00
  * @brief    M480 series CAN driver source file
  *
- * @copyright (C) 2016 Nuvoton Technology Corp. All rights reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ * @copyright (C) 2016-2020 Nuvoton Technology Corp. All rights reserved.
 *****************************************************************************/
 #include "NuMicro.h"
 
@@ -259,10 +260,12 @@ void CAN_EnterInitMode(CAN_T *tCAN, uint8_t u8Mask)
   */
 void CAN_LeaveInitMode(CAN_T *tCAN)
 {
+    uint32_t u32TimeOutCount = SystemCoreClock; // 1 second timeout
     tCAN->CON &= (~(CAN_CON_INIT_Msk | CAN_CON_CCE_Msk));
-    while(tCAN->CON & CAN_CON_INIT_Msk)
+    while(tCAN->CON & CAN_CON_INIT_Msk) /* Check INIT bit is released */
     {
-        /* Check INIT bit is released */
+        if(u32TimeOutCount == 0) break;
+        u32TimeOutCount--;
     }
 }
 
@@ -316,12 +319,23 @@ uint32_t CAN_GetCANBitRate(CAN_T *tCAN)
 {
     uint32_t u32Tseg1, u32Tseg2;
     uint32_t u32Bpr;
+    uint32_t u32Clock = (uint32_t)0;
+
+    SystemCoreClockUpdate();
+    if((tCAN == CAN0) || (tCAN == CAN2))
+    {
+        u32Clock = CLK_GetPCLK0Freq();
+    }
+    else if(tCAN == CAN1)
+    {
+        u32Clock = CLK_GetPCLK1Freq();
+    }
 
     u32Tseg1 = (tCAN->BTIME & CAN_BTIME_TSEG1_Msk) >> CAN_BTIME_TSEG1_Pos;
     u32Tseg2 = (tCAN->BTIME & CAN_BTIME_TSEG2_Msk) >> CAN_BTIME_TSEG2_Pos;
     u32Bpr   = (tCAN->BTIME & CAN_BTIME_BRP_Msk) | (tCAN->BRPE << 6ul);
 
-    return (SystemCoreClock / (u32Bpr + 1ul) / (u32Tseg1 + u32Tseg2 + 3ul));
+    return (u32Clock / (u32Bpr + 1ul) / (u32Tseg1 + u32Tseg2 + 3ul));
 }
 
 /**
@@ -377,6 +391,7 @@ uint32_t CAN_IsNewDataReceived(CAN_T *tCAN, uint8_t u8MsgObj)
   * @param[in] pCanMsg Pointer to the message structure containing data to transmit.
   * @return TRUE:  Transmission OK
   *         FALSE: Check busy flag of interface 0 is timeout
+  *         -1: Wait CAN_IF timeout
   * @details The function is used to send CAN message in BASIC mode of test mode. Before call the API,
   *          the user should be call CAN_EnterTestMode(CAN_TEST_BASIC) and let CAN controller enter
   *          basic mode of test mode. Please notice IF1 Registers used as Tx Buffer in basic mode.
@@ -385,9 +400,12 @@ int32_t CAN_BasicSendMsg(CAN_T *tCAN, STR_CANMSG_T* pCanMsg)
 {
     uint32_t i = 0ul;
     int32_t rev = 1l;
+    uint32_t u32TimeOutCount = SystemCoreClock; // 1 second timeout
 
     while(tCAN->IF[0].CREQ & CAN_IF_CREQ_BUSY_Msk)
     {
+        i++;
+        if(i > u32TimeOutCount) return -1;
     }
 
     tCAN->STATUS &= (~CAN_STATUS_TXOK_Msk);
@@ -526,6 +544,10 @@ int32_t CAN_BasicReceiveMsg(CAN_T *tCAN, STR_CANMSG_T* pCanMsg)
   *                     \ref CAN_EXT_ID (extended ID, 29-bit)
   * @param[in] u32id Specifies the identifier used for acceptance filtering.
   * @param[in] u32idmask Specifies the identifier mask used for acceptance filtering.
+  *                     \ref CAN_STD_ID_MASK
+  *                     \ref CAN_EXT_ID_MASK
+  *                     \ref CAN_MASK_MSG_DIR
+  *                     \ref CAN_MASK_EXT_ID_BIT
   * @param[in] u8singleOrFifoLast Specifies the end-of-buffer indicator.
   *                               This parameter can be one of the following values:
   *                               TRUE: for a single receive object or a FIFO receive object that is the last one of the FIFO.
@@ -665,12 +687,14 @@ int32_t CAN_SetRxMsgObj(CAN_T *tCAN, uint8_t u8MsgObj, uint8_t u8idType, uint32_
   * @param[in] pCanMsg Pointer to the message structure where received data is copied.
   * @retval TRUE Success
   * @retval FALSE No any message received
+  * @retval -1 Read Message Fail
   * @details Gets the message, if received.
   */
 int32_t CAN_ReadMsgObj(CAN_T *tCAN, uint8_t u8MsgObj, uint8_t u8Release, STR_CANMSG_T* pCanMsg)
 {
     int32_t rev = 1l;
     uint32_t u32MsgIfNum;
+    uint32_t u32TimeOutCount = SystemCoreClock * 2; // 2 second timeout
 
     if(!CAN_IsNewDataReceived(tCAN, u8MsgObj))
     {
@@ -698,9 +722,14 @@ int32_t CAN_ReadMsgObj(CAN_T *tCAN, uint8_t u8MsgObj, uint8_t u8Release, STR_CAN
 
             tCAN->IF[u32MsgIfNum].CREQ = 1ul + u8MsgObj;
 
-            while(tCAN->IF[u32MsgIfNum].CREQ & CAN_IF_CREQ_BUSY_Msk)
+            while(tCAN->IF[u32MsgIfNum].CREQ & CAN_IF_CREQ_BUSY_Msk) /*Wait*/
             {
-                /*Wait*/
+                if(u32TimeOutCount == 0)
+                {
+                    ReleaseIF(tCAN, u32MsgIfNum);
+                    return -1;
+                }
+                u32TimeOutCount--;
             }
 
             if((tCAN->IF[u32MsgIfNum].ARB2 & CAN_IF_ARB2_XTD_Msk) == 0ul)
@@ -752,7 +781,7 @@ uint32_t CAN_SetBaudRate(CAN_T *tCAN, uint32_t u32BaudRate)
     int tsegall, tseg = 0, tseg1 = 0, tseg2 = 0;
     int spt_error = 1000, spt = 0, sampl_pt;
     uint64_t clock_freq = (uint64_t)0, u64PCLK_DIV = (uint64_t)1;
-    uint32_t sjw = (uint32_t)1;
+    uint32_t sjw = (uint32_t)SJW_MAX;
 
     CAN_EnterInitMode(tCAN, (uint8_t)0);
 
@@ -982,7 +1011,9 @@ int32_t CAN_SetTxMsg(CAN_T *tCAN, uint32_t u32MsgNum, STR_CANMSG_T* pCanMsg)
   * @param[in] tCAN The pointer to CAN module base address.
   * @param[in] u32MsgNum Specifies the Message object number, from 0 to 31.
   *
-  * @return TRUE: Start transmit message.
+  * @retval TRUE: Start transmit message.
+  * @retval FALSE: No any message received
+  * @retval -1: CAN IF Busy.
   *
   * @details If a transmission is requested by programming bit TxRqst/NewDat (IFn_CMASK[2]), the TxRqst (IFn_MCON[8]) will be ignored.
   */
@@ -990,6 +1021,7 @@ int32_t CAN_TriggerTxMsg(CAN_T  *tCAN, uint32_t u32MsgNum)
 {
     int32_t rev = 1l;
     uint32_t u32MsgIfNum;
+    uint32_t u32TimeOutCount = SystemCoreClock; // 1 second timeout
 
     if((u32MsgIfNum = LockIF_TL(tCAN)) == 2ul)
     {
@@ -1005,9 +1037,14 @@ int32_t CAN_TriggerTxMsg(CAN_T  *tCAN, uint32_t u32MsgNum)
 
         tCAN->IF[u32MsgIfNum].CREQ = 1ul + u32MsgNum;
 
-        while(tCAN->IF[u32MsgIfNum].CREQ & CAN_IF_CREQ_BUSY_Msk)
+        while(tCAN->IF[u32MsgIfNum].CREQ & CAN_IF_CREQ_BUSY_Msk) /*Wait*/
         {
-            /*Wait*/
+            if(u32TimeOutCount == 0)
+            {
+                ReleaseIF(tCAN, u32MsgIfNum);
+                return -1;
+            }
+            u32TimeOutCount--;
         }
         tCAN->IF[u32MsgIfNum].CMASK  = CAN_IF_CMASK_WRRD_Msk | CAN_IF_CMASK_TXRQSTNEWDAT_Msk;
         tCAN->IF[u32MsgIfNum].CREQ  = 1ul + u32MsgNum;
@@ -1151,11 +1188,9 @@ int32_t CAN_SetMultiRxMsg(CAN_T *tCAN, uint32_t u32MsgNum, uint32_t u32MsgCount,
     uint32_t u32TimeOutCount;
     uint32_t u32EOB_Flag = 0ul;
 
-    for(i = 1ul; i < u32MsgCount; i++)
+    for(i = 1ul; i <= u32MsgCount; i++)
     {
         u32TimeOutCount = 0ul;
-
-        u32MsgNum += (i - 1ul);
 
         if(i == u32MsgCount)
         {
@@ -1170,12 +1205,14 @@ int32_t CAN_SetMultiRxMsg(CAN_T *tCAN, uint32_t u32MsgNum, uint32_t u32MsgCount,
             if(++u32TimeOutCount >= RETRY_COUNTS)
             {
                 rev = (int32_t)FALSE;
-                break;
+                return rev;
             }
             else
             {
             }
         }
+
+        u32MsgNum++;
     }
 
     return rev;
@@ -1205,6 +1242,7 @@ int32_t CAN_Transmit(CAN_T *tCAN, uint32_t u32MsgNum, STR_CANMSG_T* pCanMsg)
     if((tCAN->CON & CAN_CON_TEST_Msk) && u32Tmp)
     {
         rev = CAN_BasicSendMsg(tCAN, pCanMsg);
+        if(rev < 0) rev = 0;
     }
     else
     {

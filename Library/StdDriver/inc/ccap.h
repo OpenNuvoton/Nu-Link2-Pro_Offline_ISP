@@ -3,7 +3,8 @@
  * @version  V1.00
  * @brief    M480 Series CCAP Driver Header File
  *
- * @copyright (C) 2019 Nuvoton Technology Corp. All rights reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ * @copyright (C) 2016-2020 Nuvoton Technology Corp. All rights reserved.
  ******************************************************************************/
 #ifndef __CCAP_H__
 #define __CCAP_H__
@@ -80,8 +81,6 @@ extern "C"
 #define CCAP_INT_ADDRMIEN_ENABLE    (0x1ul<<CCAP_INT_ADDRMIEN_Pos)    /*!< VININT setting for Memory Address Match Interrupt enable  \hideinitializer */
 #define CCAP_INT_MDIEN_ENABLE       (0x1ul<<CCAP_INT_MDIEN_Pos)       /*!< VININT setting for Motion Detection Output Finish Interrupt Enable enable  \hideinitializer */
 
-
-static uint32_t u32EscapeFrame = 0;
 /*---------------------------------------------------------------------------------------------------------*/
 /*  Define Error Code                                                                                      */
 /*---------------------------------------------------------------------------------------------------------*/
@@ -89,10 +88,11 @@ static uint32_t u32EscapeFrame = 0;
 #define CCAP_INVALID_BUF               ((int32_t)(0xFFFFFFFF-2))
 #define CCAP_INVALID_PIPE              ((int32_t)(0xFFFFFFFF-3))
 
+#define CCAP_TIMEOUT_ERR    (-1)    /*!< CCAP operation abort due to timeout error \hideinitializer */
 
 /*@}*/ /* end of group NUC472_442_CCAP_EXPORTED_CONSTANTS */
 
-
+extern int32_t g_CCAP_i32ErrCode;
 
 /** @addtogroup CCAP_EXPORTED_FUNCTIONS CCAP Exported Functions
   @{

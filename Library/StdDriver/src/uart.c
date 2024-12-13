@@ -3,7 +3,8 @@
  * @version  V3.00
  * @brief    M480 series UART driver source file
  *
- * @copyright (C) 2016 Nuvoton Technology Corp. All rights reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ * @copyright (C) 2016-2020 Nuvoton Technology Corp. All rights reserved.
 *****************************************************************************/
 
 #include <stdio.h>
@@ -27,7 +28,7 @@
  *    @param[in]    uart                The pointer of the specified UART module.
  *    @param[in]    u32InterruptFlag    The specified interrupt of UART module.
  *                                      - \ref UART_INTSTS_LININT_Msk    : LIN bus interrupt
- *                                      - \ref UART_INTEN_WKIEN_Msk      : Wake-up interrupt
+ *                                      - \ref UART_INTSTS_WKIF_Msk      : Wake-up interrupt
  *                                      - \ref UART_INTSTS_BUFERRINT_Msk : Buffer Error interrupt
  *                                      - \ref UART_INTSTS_MODEMINT_Msk  : Modem Status interrupt
  *                                      - \ref UART_INTSTS_RLSINT_Msk    : Receive Line Status interrupt
@@ -237,6 +238,20 @@ void UART_Open(UART_T* uart, uint32_t u32baudrate)
         /* Get UART clock divider number */
         u32UartClkDivNum = (CLK->CLKDIV4 & CLK_CLKDIV4_UART5DIV_Msk) >> CLK_CLKDIV4_UART5DIV_Pos;
     }
+    else if((uart==(UART_T*)UART6) && ((SYS->CSERVER & SYS_CSERVER_VERSION_Msk) == 0x1)) // M480LD
+    {
+        /* Get UART clock source selection */
+        u32UartClkSrcSel = (CLK->CLKSEL3 & CLK_CLKSEL3_UART6SEL_Msk) >> CLK_CLKSEL3_UART6SEL_Pos;
+        /* Get UART clock divider number */
+        u32UartClkDivNum = (CLK->CLKDIV4 & CLK_CLKDIV4_UART6DIV_Msk) >> CLK_CLKDIV4_UART6DIV_Pos;
+    }
+    else if((uart==(UART_T*)UART7) && ((SYS->CSERVER & SYS_CSERVER_VERSION_Msk) == 0x1)) // M480LD
+    {
+        /* Get UART clock source selection */
+        u32UartClkSrcSel = (CLK->CLKSEL3 & CLK_CLKSEL3_UART7SEL_Msk) >> CLK_CLKSEL3_UART7SEL_Pos;
+        /* Get UART clock divider number */
+        u32UartClkDivNum = (CLK->CLKDIV4 & CLK_CLKDIV4_UART7DIV_Msk) >> CLK_CLKDIV4_UART7DIV_Pos;
+    }
 
     /* Select UART function */
     uart->FUNCSEL = UART_FUNCSEL_UART;
@@ -393,6 +408,20 @@ void UART_SetLineConfig(UART_T* uart, uint32_t u32baudrate, uint32_t u32data_wid
         /* Get UART clock divider number */
         u32UartClkDivNum = (CLK->CLKDIV4 & CLK_CLKDIV4_UART5DIV_Msk) >> CLK_CLKDIV4_UART5DIV_Pos;
     }
+    else if((uart==(UART_T*)UART6) && ((SYS->CSERVER & SYS_CSERVER_VERSION_Msk) == 0x1)) // M480LD
+    {
+        /* Get UART clock source selection */
+        u32UartClkSrcSel = (CLK->CLKSEL3 & CLK_CLKSEL3_UART6SEL_Msk) >> CLK_CLKSEL3_UART6SEL_Pos;
+        /* Get UART clock divider number */
+        u32UartClkDivNum = (CLK->CLKDIV4 & CLK_CLKDIV4_UART6DIV_Msk) >> CLK_CLKDIV4_UART6DIV_Pos;
+    }
+    else if((uart==(UART_T*)UART7) && ((SYS->CSERVER & SYS_CSERVER_VERSION_Msk) == 0x1)) // M480LD
+    {
+        /* Get UART clock source selection */
+        u32UartClkSrcSel = (CLK->CLKSEL3 & CLK_CLKSEL3_UART7SEL_Msk) >> CLK_CLKSEL3_UART7SEL_Pos;
+        /* Get UART clock divider number */
+        u32UartClkDivNum = (CLK->CLKDIV4 & CLK_CLKDIV4_UART7DIV_Msk) >> CLK_CLKDIV4_UART7DIV_Pos;
+    }
 
     /* Get PLL clock frequency if UART clock source selection is PLL */
     if(u32UartClkSrcSel == 1ul)
@@ -508,7 +537,20 @@ void UART_SelectIrDAMode(UART_T* uart, uint32_t u32Buadrate, uint32_t u32Directi
         /* Get UART clock divider number */
         u32UartClkDivNum = (CLK->CLKDIV4 & CLK_CLKDIV4_UART5DIV_Msk) >> CLK_CLKDIV4_UART5DIV_Pos;
     }
-
+    else if((uart==(UART_T*)UART6) && ((SYS->CSERVER & SYS_CSERVER_VERSION_Msk) == 0x1)) // M480LD
+    {
+        /* Get UART clock source selection */
+        u32UartClkSrcSel = (CLK->CLKSEL3 & CLK_CLKSEL3_UART6SEL_Msk) >> CLK_CLKSEL3_UART6SEL_Pos;
+        /* Get UART clock divider number */
+        u32UartClkDivNum = (CLK->CLKDIV4 & CLK_CLKDIV4_UART6DIV_Msk) >> CLK_CLKDIV4_UART6DIV_Pos;
+    }
+    else if((uart==(UART_T*)UART7) && ((SYS->CSERVER & SYS_CSERVER_VERSION_Msk) == 0x1)) // M480LD
+    {
+        /* Get UART clock source selection */
+        u32UartClkSrcSel = (CLK->CLKSEL3 & CLK_CLKSEL3_UART7SEL_Msk) >> CLK_CLKSEL3_UART7SEL_Pos;
+        /* Get UART clock divider number */
+        u32UartClkDivNum = (CLK->CLKDIV4 & CLK_CLKDIV4_UART7DIV_Msk) >> CLK_CLKDIV4_UART7DIV_Pos;
+    }
 
     /* Get PLL clock frequency if UART clock source selection is PLL */
     if(u32UartClkSrcSel == 1ul)

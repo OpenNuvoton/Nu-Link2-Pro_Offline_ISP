@@ -3,7 +3,7 @@
 #include "stdint.h"
 #include "ISP_DRIVER.H"
 #include "hal_api.h"
-extern __align(4) uint8_t  uart_rcvbuf[64];
+extern uint8_t __attribute__((aligned(4))) uart_rcvbuf[64];
 extern uint8_t volatile bUartDataReady;
 extern uint8_t volatile bufhead;
 #define MAX_PKT_SIZE            (64)

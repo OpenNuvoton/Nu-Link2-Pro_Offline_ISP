@@ -21,7 +21,11 @@
 #define APROM_MODE  1
 #define LDROM_MODE  2
 
+#ifndef ISP_CMD_H
+#define ISP_CMD_H
 typedef signed int ErrNo;
+#endif // ISP_CMD_H
+
 #define PAGE_SIZE                      0x00000200     /* Page size */
 
 #define PACKET_SIZE 64//32

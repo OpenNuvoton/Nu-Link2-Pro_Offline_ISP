@@ -3,7 +3,8 @@
 ; * @version  V1.00
 ; * @brief    CMSIS Cortex-M4 Core Device Startup File for M480
 ; *
-; * @copyright (C) 2016 Nuvoton Technology Corp. All rights reserved.
+; * SPDX-License-Identifier: Apache-2.0
+; * @copyright (C) 2023 Nuvoton Technology Corp. All rights reserved.
 ;*****************************************************************************/
 
         MODULE  ?cstartup
@@ -14,7 +15,7 @@
         SECTION .intvec:CODE:NOROOT(2)
 
         EXTERN  __iar_program_start
-        EXTERN  HardFault_Handler
+        EXTERN  ProcessHardFault
         EXTERN  SystemInit
         PUBLIC  __vector_table
         PUBLIC  __vector_table_0x1c
@@ -181,9 +182,9 @@ Reset_Handler
 	#ifndef ENABLE_SPIM_CACHE
         LDR     R0, =0x40000200            ; R0 = Clock Controller Register Base Address
         LDR     R1, [R0,#0x4]              ; R1 = 0x40000204  (AHBCLK)
-        ORR     R1, R1, #0x4000              
+        ORR     R1, R1, #0x4000
         STR     R1, [R0,#0x4]              ; CLK->AHBCLK |= CLK_AHBCLK_SPIMCKEN_Msk;
-                
+
         LDR     R0, =0x40007000            ; R0 = SPIM Register Base Address
         LDR     R1, [R0,#4]                ; R1 = SPIM->CTL1
         ORR     R1, R1,#2                  ; R1 |= SPIM_CTL1_CACHEOFF_Msk
@@ -208,6 +209,20 @@ Reset_Handler
 
         LDR     R0, =__iar_program_start
         BX      R0
+
+        PUBWEAK HardFault_Handler
+HardFault_Handler\
+
+        MOV     R0, LR
+        MRS     R1, MSP
+        MRS     R2, PSP
+        LDR     R3, =ProcessHardFault
+        BLX     R3
+        BX      R0
+
+          PUBWEAK ProcessHardFaultx
+ProcessHardFaultx\
+        B       .
 
         PUBWEAK NMI_Handler
         SECTION .text:CODE:REORDER:NOROOT(1)

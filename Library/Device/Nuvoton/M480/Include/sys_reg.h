@@ -3,7 +3,8 @@
  * @version  V1.00
  * @brief    SYS register definition header file
  *
- * @copyright (C) 2017 Nuvoton Technology Corp. All rights reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ * @copyright (C) 2017-2020 Nuvoton Technology Corp. All rights reserved.
  *****************************************************************************/
 #ifndef __SYS_REG_H__
 #define __SYS_REG_H__
@@ -3434,122 +3435,274 @@ typedef struct
 
 
     /**
-     * @var NMI_T::NMIEN
-     * Offset: 0x00  NMI Source Interrupt Enable Register
-     * ---------------------------------------------------------------------------------------------------
-     * |Bits    |Field     |Descriptions
-     * | :----: | :----:   | :---- |
-     * |[0]     |BODOUT    |BOD NMI Source Enable (Write Protect)
-     * |        |          |0 = BOD NMI source Disabled.
-     * |        |          |1 = BOD NMI source Enabled.
-     * |        |          |Note: This bit is write protected. Refer to the SYS_REGLCTL register.
-     * |[1]     |IRC_INT   |IRC TRIM NMI Source Enable (Write Protect)
-     * |        |          |0 = IRC TRIM NMI source Disabled.
-     * |        |          |1 = IRC TRIM NMI source Enabled.
-     * |        |          |Note: This bit is write protected. Refer to the SYS_REGLCTL register.
-     * |[2]     |PWRWU_INT |Power-down Mode Wake-up NMI Source Enable (Write Protect)
-     * |        |          |0 = Power-down mode wake-up NMI source Disabled.
-     * |        |          |1 = Power-down mode wake-up NMI source Enabled.
-     * |        |          |Note: This bit is write protected. Refer to the SYS_REGLCTL register.
-     * |[3]     |SRAM_PERR |SRAM Parity Check NMI Source Enable (Write Protect)
-     * |        |          |0 = SRAM parity check error NMI source Disabled.
-     * |        |          |1 = SRAM parity check error NMI source Enabled.
-     * |        |          |Note: This bit is write protected. Refer to the SYS_REGLCTL register.
-     * |[4]     |CLKFAIL   |Clock Fail Detected and IRC Auto Trim Interrupt NMI Source Enable (Write Protect)
-     * |        |          |0 = Clock fail detected and IRC Auto Trim interrupt NMI source Disabled.
-     * |        |          |1 = Clock fail detected and IRC Auto Trim interrupt NMI source Enabled.
-     * |        |          |Note: This bit is write protected. Refer to the SYS_REGLCTL register.
-     * |[6]     |RTC_INT   |RTC NMI Source Enable (Write Protect)
-     * |        |          |0 = RTC NMI source Disabled.
-     * |        |          |1 = RTC NMI source Enabled.
-     * |        |          |Note: This bit is write protected. Refer to the SYS_REGLCTL register.
-     * |[7]     |TAMPER_INT|TAMPER_INT NMI Source Enable (Write Protect)
-     * |        |          |0 = Backup register tamper detected NMI source Disabled.
-     * |        |          |1 = Backup register tamper detected NMI source Enabled.
-     * |        |          |Note: This bit is write protected. Refer to the SYS_REGLCTL register.
-     * |[8]     |EINT0     |External Interrupt From PA.6 or PB.5 Pin NMI Source Enable (Write Protect)
-     * |        |          |0 = External interrupt from PA.6 or PB.5 pin NMI source Disabled.
-     * |        |          |1 = External interrupt from PA.6 or PB.5 pin NMI source Enabled.
-     * |        |          |Note: This bit is write protected. Refer to the SYS_REGLCTL register.
-     * |[9]     |EINT1     |External Interrupt From PA.7, PB.4 or PD.15 Pin NMI Source Enable (Write Protect)
-     * |        |          |0 = External interrupt from PA.7, PB.4 or PD.15 pin NMI source Disabled.
-     * |        |          |1 = External interrupt from PA.7, PB.4 or PD.15 pin NMI source Enabled.
-     * |        |          |Note: This bit is write protected. Refer to the SYS_REGLCTL register.
-     * |[10]    |EINT2     |External Interrupt From PB.3 or PC.6 Pin NMI Source Enable (Write Protect)
-     * |        |          |0 = External interrupt from PB.3 or PC.6 pin NMI source Disabled.
-     * |        |          |1 = External interrupt from PB.3 or PC.6 pin NMI source Enabled.
-     * |        |          |Note: This bit is write protected. Refer to the SYS_REGLCTL register.
-     * |[11]    |EINT3     |External Interrupt From PB.2 or PC.7 Pin NMI Source Enable (Write Protect)
-     * |        |          |0 = External interrupt from PB.2 or PC.7 pin NMI source Disabled.
-     * |        |          |1 = External interrupt from PB.2 or PC.7 pin NMI source Enabled.
-     * |        |          |Note: This bit is write protected. Refer to the SYS_REGLCTL register.
-     * |[12]    |EINT4     |External Interrupt From PA.8, PB.6 or PF.15 Pin NMI Source Enable (Write Protect)
-     * |        |          |0 = External interrupt from PA.8, PB.6 or PF.15 pin NMI source Disabled.
-     * |        |          |1 = External interrupt from PA.8, PB.6 or PF.15 pin NMI source Enabled.
-     * |        |          |Note: This bit is write protected. Refer to the SYS_REGLCTL register.
-     * |[13]    |EINT5     |External Interrupt From PB.7 or PF.14 Pin NMI Source Enable (Write Protect)
-     * |        |          |0 = External interrupt from PB.7 or PF.14 pin NMI source Disabled.
-     * |        |          |1 = External interrupt from PB.7 or PF.14 pin NMI source Enabled.
-     * |        |          |Note: This bit is write protected. Refer to the SYS_REGLCTL register.
-     * |[14]    |UART0_INT |UART0 NMI Source Enable (Write Protect)
-     * |        |          |0 = UART0 NMI source Disabled.
-     * |        |          |1 = UART0 NMI source Enabled.
-     * |        |          |Note: This bit is write protected. Refer to the SYS_REGLCTL register.
-     * |[15]    |UART1_INT |UART1 NMI Source Enable (Write Protect)
-     * |        |          |0 = UART1 NMI source Disabled.
-     * |        |          |1 = UART1 NMI source Enabled.
-     * |        |          |Note: This bit is write protected. Refer to the SYS_REGLCTL register.
-     * @var NMI_T::NMISTS
-     * Offset: 0x04  NMI Source Interrupt Status Register
-     * ---------------------------------------------------------------------------------------------------
-     * |Bits    |Field     |Descriptions
-     * | :----: | :----:   | :---- |
-     * |[0]     |BODOUT    |BOD Interrupt Flag (Read Only)
-     * |        |          |0 = BOD interrupt is deasserted.
-     * |        |          |1 = BOD interrupt is asserted.
-     * |[1]     |IRC_INT   |IRC TRIM Interrupt Flag (Read Only)
-     * |        |          |0 = HIRC TRIM interrupt is deasserted.
-     * |        |          |1 = HIRC TRIM interrupt is asserted.
-     * |[2]     |PWRWU_INT |Power-down Mode Wake-up Interrupt Flag (Read Only)
-     * |        |          |0 = Power-down mode wake-up interrupt is deasserted.
-     * |        |          |1 = Power-down mode wake-up interrupt is asserted.
-     * |[3]     |SRAM_PERR |SRAM ParityCheck Error Interrupt Flag (Read Only)
-     * |        |          |0 = SRAM parity check error interrupt is deasserted.
-     * |        |          |1 = SRAM parity check error interrupt is asserted.
-     * |[4]     |CLKFAIL   |Clock Fail Detected or IRC Auto Trim Interrupt Flag (Read Only)
-     * |        |          |0 = Clock fail detected or IRC Auto Trim interrupt is deasserted.
-     * |        |          |1 = Clock fail detected or IRC Auto Trim interrupt is asserted.
-     * |[6]     |RTC_INT   |RTC Interrupt Flag (Read Only)
-     * |        |          |0 = RTC interrupt is deasserted.
-     * |        |          |1 = RTC interrupt is asserted.
-     * |[7]     |TAMPER_INT|TAMPER_INT Interrupt Flag (Read Only)
-     * |        |          |0 = Backup register tamper detected interrupt is deasserted.
-     * |        |          |1 = Backup register tamper detected interrupt is asserted.
-     * |[8]     |EINT0     |External Interrupt From PA.6 or PB.5 Pin Interrupt Flag (Read Only)
-     * |        |          |0 = External Interrupt from PA.6 or PB.5 interrupt is deasserted.
-     * |        |          |1 = External Interrupt from PA.6 or PB.5 interrupt is asserted.
-     * |[9]     |EINT1     |External Interrupt From PA.7, PB.4 or PD.15 Pin Interrupt Flag (Read Only)
-     * |        |          |0 = External Interrupt from PA.7, PB.4 or PD.15 interrupt is deasserted.
-     * |        |          |1 = External Interrupt from PA.7, PB.4 or PD.15 interrupt is asserted.
-     * |[10]    |EINT2     |External Interrupt From PB.3 or PC.6 Pin Interrupt Flag (Read Only)
-     * |        |          |0 = External Interrupt from PB.3 or PC.6 interrupt is deasserted.
-     * |        |          |1 = External Interrupt from PB.3 or PC.6 interrupt is asserted.
-     * |[11]    |EINT3     |External Interrupt From PB.2 or PC.7 Pin Interrupt Flag (Read Only)
-     * |        |          |0 = External Interrupt from PB.2 or PC.7 interrupt is deasserted.
-     * |        |          |1 = External Interrupt from PB.2 or PC.7 interrupt is asserted.
-     * |[12]    |EINT4     |External Interrupt From PA.8, PB.6 or PF.15 Pin Interrupt Flag (Read Only)
-     * |        |          |0 = External Interrupt from PA.8, PB.6 or PF.15 interrupt is deasserted.
-     * |        |          |1 = External Interrupt from PA.8, PB.6 or PF.15 interrupt is asserted.
-     * |[13]    |EINT5     |External Interrupt From PB.7 or PF.14 Pin Interrupt Flag (Read Only)
-     * |        |          |0 = External Interrupt from PB.7 or PF.14 interrupt is deasserted.
-     * |        |          |1 = External Interrupt from PB.7 or PF.14 interrupt is asserted.
-     * |[14]    |UART0_INT |UART0 Interrupt Flag (Read Only)
-     * |        |          |0 = UART1 interrupt is deasserted.
-     * |        |          |1 = UART1 interrupt is asserted.
-     * |[15]    |UART1_INT |UART1 Interrupt Flag (Read Only)
-     * |        |          |0 = UART1 interrupt is deasserted.
-     * |        |          |1 = UART1 interrupt is asserted.
-     */
+@var NMI_T::NMIEN
+
+\htmlonly
+
+<html><table class="fixed" border="1" style="border-collapse:collapse;" borderColor=black ><col width="75px" /><col width="125px" /><col width="700px" /><caption align="left"><font size="3">NMIEN
+</font><br><p> <font size="2">
+Offset: 0x00  NMI Source Interrupt Enable Register
+</font></caption><thread><tr bgcolor="#8A0808" ><td><font color=white><b>Bits</b></font></td><td><font color=white><b>Field</b></font></td><td><font color=white><b>Descriptions</b></font></td></tr></thread><tbody>
+<tr><td>
+[0]</td><td>BODOUT</td><td><div style="word-wrap: break-word;"><b>BOD NMI Source Enable (Write Protect)
+</b><br>
+0 = BOD NMI source Disabled.
+<br>
+1 = BOD NMI source Enabled.
+<br>
+Note: This bit is write protected. Refer to the SYS_REGLCTL register.
+<br>
+</div></td></tr><tr><td>
+[1]</td><td>IRC_INT</td><td><div style="word-wrap: break-word;"><b>IRC TRIM NMI Source Enable (Write Protect)
+</b><br>
+0 = IRC TRIM NMI source Disabled.
+<br>
+1 = IRC TRIM NMI source Enabled.
+<br>
+Note: This bit is write protected. Refer to the SYS_REGLCTL register.
+<br>
+</div></td></tr><tr><td>
+[2]</td><td>PWRWU_INT</td><td><div style="word-wrap: break-word;"><b>Power-down Mode Wake-up NMI Source Enable (Write Protect)
+</b><br>
+0 = Power-down mode wake-up NMI source Disabled.
+<br>
+1 = Power-down mode wake-up NMI source Enabled.
+<br>
+Note: This bit is write protected. Refer to the SYS_REGLCTL register.
+<br>
+</div></td></tr><tr><td>
+[3]</td><td>SRAM_PERR</td><td><div style="word-wrap: break-word;"><b>SRAM Parity Check NMI Source Enable (Write Protect)
+</b><br>
+0 = SRAM parity check error NMI source Disabled.
+<br>
+1 = SRAM parity check error NMI source Enabled.
+<br>
+Note: This bit is write protected. Refer to the SYS_REGLCTL register.
+<br>
+</div></td></tr><tr><td>
+[4]</td><td>CLKFAIL</td><td><div style="word-wrap: break-word;"><b>Clock Fail Detected and IRC Auto Trim Interrupt NMI Source Enable (Write Protect)
+</b><br>
+0 = Clock fail detected and IRC Auto Trim interrupt NMI source Disabled.
+<br>
+1 = Clock fail detected and IRC Auto Trim interrupt NMI source Enabled.
+<br>
+Note: This bit is write protected. Refer to the SYS_REGLCTL register.
+<br>
+</div></td></tr><tr><td>
+[6]</td><td>RTC_INT</td><td><div style="word-wrap: break-word;"><b>RTC NMI Source Enable (Write Protect)
+</b><br>
+0 = RTC NMI source Disabled.
+<br>
+1 = RTC NMI source Enabled.
+<br>
+Note: This bit is write protected. Refer to the SYS_REGLCTL register.
+<br>
+</div></td></tr><tr><td>
+[7]</td><td>TAMPER_INT</td><td><div style="word-wrap: break-word;"><b>TAMPER_INT NMI Source Enable (Write Protect)
+</b><br>
+0 = Backup register tamper detected NMI source Disabled.
+<br>
+1 = Backup register tamper detected NMI source Enabled.
+<br>
+Note: This bit is write protected. Refer to the SYS_REGLCTL register.
+<br>
+</div></td></tr><tr><td>
+[8]</td><td>EINT0</td><td><div style="word-wrap: break-word;"><b>External Interrupt From PA.6 or PB.5 Pin NMI Source Enable (Write Protect)
+</b><br>
+0 = External interrupt from PA.6 or PB.5 pin NMI source Disabled.
+<br>
+1 = External interrupt from PA.6 or PB.5 pin NMI source Enabled.
+<br>
+Note: This bit is write protected. Refer to the SYS_REGLCTL register.
+<br>
+</div></td></tr><tr><td>
+[9]</td><td>EINT1</td><td><div style="word-wrap: break-word;"><b>External Interrupt From PA.7, PB.4 or PD.15 Pin NMI Source Enable (Write Protect)
+</b><br>
+0 = External interrupt from PA.7, PB.4 or PD.15 pin NMI source Disabled.
+<br>
+1 = External interrupt from PA.7, PB.4 or PD.15 pin NMI source Enabled.
+<br>
+Note: This bit is write protected. Refer to the SYS_REGLCTL register.
+<br>
+</div></td></tr><tr><td>
+[10]</td><td>EINT2</td><td><div style="word-wrap: break-word;"><b>External Interrupt From PB.3 or PC.6 Pin NMI Source Enable (Write Protect)
+</b><br>
+0 = External interrupt from PB.3 or PC.6 pin NMI source Disabled.
+<br>
+1 = External interrupt from PB.3 or PC.6 pin NMI source Enabled.
+<br>
+Note: This bit is write protected. Refer to the SYS_REGLCTL register.
+<br>
+</div></td></tr><tr><td>
+[11]</td><td>EINT3</td><td><div style="word-wrap: break-word;"><b>External Interrupt From PB.2 or PC.7 Pin NMI Source Enable (Write Protect)
+</b><br>
+0 = External interrupt from PB.2 or PC.7 pin NMI source Disabled.
+<br>
+1 = External interrupt from PB.2 or PC.7 pin NMI source Enabled.
+<br>
+Note: This bit is write protected. Refer to the SYS_REGLCTL register.
+<br>
+</div></td></tr><tr><td>
+[12]</td><td>EINT4</td><td><div style="word-wrap: break-word;"><b>External Interrupt From PA.8, PB.6 or PF.15 Pin NMI Source Enable (Write Protect)
+</b><br>
+0 = External interrupt from PA.8, PB.6 or PF.15 pin NMI source Disabled.
+<br>
+1 = External interrupt from PA.8, PB.6 or PF.15 pin NMI source Enabled.
+<br>
+Note: This bit is write protected. Refer to the SYS_REGLCTL register.
+<br>
+</div></td></tr><tr><td>
+[13]</td><td>EINT5</td><td><div style="word-wrap: break-word;"><b>External Interrupt From PB.7 or PF.14 Pin NMI Source Enable (Write Protect)
+</b><br>
+0 = External interrupt from PB.7 or PF.14 pin NMI source Disabled.
+<br>
+1 = External interrupt from PB.7 or PF.14 pin NMI source Enabled.
+<br>
+Note: This bit is write protected. Refer to the SYS_REGLCTL register.
+<br>
+</div></td></tr><tr><td>
+[14]</td><td>UART0_INT</td><td><div style="word-wrap: break-word;"><b>UART0 NMI Source Enable (Write Protect)
+</b><br>
+0 = UART0 NMI source Disabled.
+<br>
+1 = UART0 NMI source Enabled.
+<br>
+Note: This bit is write protected. Refer to the SYS_REGLCTL register.
+<br>
+</div></td></tr><tr><td>
+[15]</td><td>UART1_INT</td><td><div style="word-wrap: break-word;"><b>UART1 NMI Source Enable (Write Protect)
+</b><br>
+0 = UART1 NMI source Disabled.
+<br>
+1 = UART1 NMI source Enabled.
+<br>
+Note: This bit is write protected. Refer to the SYS_REGLCTL register.
+<br>
+</div></td></tr></tbody></table></html>
+
+\endhtmlonly
+
+
+@var NMI_T::NMISTS
+
+\htmlonly
+
+<html><table class="fixed" border="1" style="border-collapse:collapse;" borderColor=black ><col width="75px" /><col width="125px" /><col width="700px" /><caption align="left"><font size="3">NMISTS
+</font><br><p> <font size="2">
+Offset: 0x04  NMI Source Interrupt Status Register
+</font></caption><thread><tr bgcolor="#8A0808" ><td><font color=white><b>Bits</b></font></td><td><font color=white><b>Field</b></font></td><td><font color=white><b>Descriptions</b></font></td></tr></thread><tbody>
+<tr><td>
+[0]</td><td>BODOUT</td><td><div style="word-wrap: break-word;"><b>BOD Interrupt Flag (Read Only)
+</b><br>
+0 = BOD interrupt is deasserted.
+<br>
+1 = BOD interrupt is asserted.
+<br>
+</div></td></tr><tr><td>
+[1]</td><td>IRC_INT</td><td><div style="word-wrap: break-word;"><b>IRC TRIM Interrupt Flag (Read Only)
+</b><br>
+0 = HIRC TRIM interrupt is deasserted.
+<br>
+1 = HIRC TRIM interrupt is asserted.
+<br>
+</div></td></tr><tr><td>
+[2]</td><td>PWRWU_INT</td><td><div style="word-wrap: break-word;"><b>Power-down Mode Wake-up Interrupt Flag (Read Only)
+</b><br>
+0 = Power-down mode wake-up interrupt is deasserted.
+<br>
+1 = Power-down mode wake-up interrupt is asserted.
+<br>
+</div></td></tr><tr><td>
+[3]</td><td>SRAM_PERR</td><td><div style="word-wrap: break-word;"><b>SRAM ParityCheck Error Interrupt Flag (Read Only)
+</b><br>
+0 = SRAM parity check error interrupt is deasserted.
+<br>
+1 = SRAM parity check error interrupt is asserted.
+<br>
+</div></td></tr><tr><td>
+[4]</td><td>CLKFAIL</td><td><div style="word-wrap: break-word;"><b>Clock Fail Detected or IRC Auto Trim Interrupt Flag (Read Only)
+</b><br>
+0 = Clock fail detected or IRC Auto Trim interrupt is deasserted.
+<br>
+1 = Clock fail detected or IRC Auto Trim interrupt is asserted.
+<br>
+</div></td></tr><tr><td>
+[6]</td><td>RTC_INT</td><td><div style="word-wrap: break-word;"><b>RTC Interrupt Flag (Read Only)
+</b><br>
+0 = RTC interrupt is deasserted.
+<br>
+1 = RTC interrupt is asserted.
+<br>
+</div></td></tr><tr><td>
+[7]</td><td>TAMPER_INT</td><td><div style="word-wrap: break-word;"><b>TAMPER_INT Interrupt Flag (Read Only)
+</b><br>
+0 = Backup register tamper detected interrupt is deasserted.
+<br>
+1 = Backup register tamper detected interrupt is asserted.
+<br>
+</div></td></tr><tr><td>
+[8]</td><td>EINT0</td><td><div style="word-wrap: break-word;"><b>External Interrupt From PA.6 or PB.5 Pin Interrupt Flag (Read Only)
+</b><br>
+0 = External Interrupt from PA.6 or PB.5 interrupt is deasserted.
+<br>
+1 = External Interrupt from PA.6 or PB.5 interrupt is asserted.
+<br>
+</div></td></tr><tr><td>
+[9]</td><td>EINT1</td><td><div style="word-wrap: break-word;"><b>External Interrupt From PA.7, PB.4 or PD.15 Pin Interrupt Flag (Read Only)
+</b><br>
+0 = External Interrupt from PA.7, PB.4 or PD.15 interrupt is deasserted.
+<br>
+1 = External Interrupt from PA.7, PB.4 or PD.15 interrupt is asserted.
+<br>
+</div></td></tr><tr><td>
+[10]</td><td>EINT2</td><td><div style="word-wrap: break-word;"><b>External Interrupt From PB.3 or PC.6 Pin Interrupt Flag (Read Only)
+</b><br>
+0 = External Interrupt from PB.3 or PC.6 interrupt is deasserted.
+<br>
+1 = External Interrupt from PB.3 or PC.6 interrupt is asserted.
+<br>
+</div></td></tr><tr><td>
+[11]</td><td>EINT3</td><td><div style="word-wrap: break-word;"><b>External Interrupt From PB.2 or PC.7 Pin Interrupt Flag (Read Only)
+</b><br>
+0 = External Interrupt from PB.2 or PC.7 interrupt is deasserted.
+<br>
+1 = External Interrupt from PB.2 or PC.7 interrupt is asserted.
+<br>
+</div></td></tr><tr><td>
+[12]</td><td>EINT4</td><td><div style="word-wrap: break-word;"><b>External Interrupt From PA.8, PB.6 or PF.15 Pin Interrupt Flag (Read Only)
+</b><br>
+0 = External Interrupt from PA.8, PB.6 or PF.15 interrupt is deasserted.
+<br>
+1 = External Interrupt from PA.8, PB.6 or PF.15 interrupt is asserted.
+<br>
+</div></td></tr><tr><td>
+[13]</td><td>EINT5</td><td><div style="word-wrap: break-word;"><b>External Interrupt From PB.7 or PF.14 Pin Interrupt Flag (Read Only)
+</b><br>
+0 = External Interrupt from PB.7 or PF.14 interrupt is deasserted.
+<br>
+1 = External Interrupt from PB.7 or PF.14 interrupt is asserted.
+<br>
+</div></td></tr><tr><td>
+[14]</td><td>UART0_INT</td><td><div style="word-wrap: break-word;"><b>UART0 Interrupt Flag (Read Only)
+</b><br>
+0 = UART1 interrupt is deasserted.
+<br>
+1 = UART1 interrupt is asserted.
+<br>
+</div></td></tr><tr><td>
+[15]</td><td>UART1_INT</td><td><div style="word-wrap: break-word;"><b>UART1 Interrupt Flag (Read Only)
+</b><br>
+0 = UART1 interrupt is deasserted.
+<br>
+1 = UART1 interrupt is asserted.
+<br>
+</div></td></tr></tbody></table></html>
+
+\endhtmlonly
+
+
+
+ */
     __IO uint32_t NMIEN;                 /*!< [0x0000] NMI Source Interrupt Enable Register                             */
     __I  uint32_t NMISTS;                /*!< [0x0004] NMI Source Interrupt Status Register                             */
 

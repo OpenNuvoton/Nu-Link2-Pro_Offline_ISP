@@ -3,7 +3,8 @@
  * @version  V3.00
  * @brief    M480 series QSPI driver source file
  *
- * @copyright (C) 2016 Nuvoton Technology Corp. All rights reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ * @copyright (C) 2016-2020 Nuvoton Technology Corp. All rights reserved.
 *****************************************************************************/
 #include "NuMicro.h"
 
@@ -367,8 +368,8 @@ uint32_t QSPI_SetBusClock(QSPI_T *qspi, uint32_t u32BusClock)
 /**
   * @brief  Configure FIFO threshold setting.
   * @param[in]  qspi The pointer of the specified QSPI module.
-  * @param[in]  u32TxThreshold Decides the TX FIFO threshold. It could be 0 ~ 3.
-  * @param[in]  u32RxThreshold Decides the RX FIFO threshold. It could be 0 ~ 3.
+  * @param[in]  u32TxThreshold Decides the TX FIFO threshold. It could be 0 ~ 7.
+  * @param[in]  u32RxThreshold Decides the RX FIFO threshold. It could be 0 ~ 7.
   * @return None
   * @details Set TX FIFO threshold and RX FIFO threshold configurations.
   */

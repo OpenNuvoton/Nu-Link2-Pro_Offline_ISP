@@ -3,7 +3,8 @@
  * @version  V1.00
  * @brief    M480 series SYS driver source file
  *
- * @copyright (C) 2016 Nuvoton Technology Corp. All rights reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ * @copyright (C) 2016-2020 Nuvoton Technology Corp. All rights reserved.
 *****************************************************************************/
 
 #include "NuMicro.h"
@@ -187,11 +188,11 @@ void SYS_ResetModule(uint32_t u32ModuleIndex)
     /* Generate reset signal to the corresponding module */
     u32tmpVal = (1UL << (u32ModuleIndex & 0x00ffffffUL));
     u32tmpAddr = (uint32_t)&SYS->IPRST0 + ((u32ModuleIndex >> 24UL));
-    *(uint32_t *)u32tmpAddr |= u32tmpVal;
+    *(volatile uint32_t *)u32tmpAddr |= u32tmpVal;
 
     /* Release corresponding module from reset state */
     u32tmpVal = ~(1UL << (u32ModuleIndex & 0x00ffffffUL));
-    *(uint32_t *)u32tmpAddr &= u32tmpVal;
+    *(volatile uint32_t *)u32tmpAddr &= u32tmpVal;
 }
 
 /**

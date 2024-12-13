@@ -3,7 +3,8 @@
  * @version  V1.00
  * @brief    M480 series PDMA driver source file
  *
- * @copyright (C) 2014~2016 Nuvoton Technology Corp. All rights reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ * @copyright (C) 2016-2020 Nuvoton Technology Corp. All rights reserved.
 *****************************************************************************/
 #include "NuMicro.h"
 
@@ -290,8 +291,8 @@ void PDMA_SetTransferMode(PDMA_T * pdma,uint32_t u32Ch, uint32_t u32Peripheral, 
 
     if(u32ScatterEn)
     {
-        pdma->DSCT[u32Ch].CTL = (pdma->DSCT[u32Ch].CTL & ~PDMA_DSCT_CTL_OPMODE_Msk) | PDMA_OP_SCATTER;
         pdma->DSCT[u32Ch].NEXT = u32DescAddr - (PDMA->SCATBA);
+        pdma->DSCT[u32Ch].CTL = (pdma->DSCT[u32Ch].CTL & ~PDMA_DSCT_CTL_OPMODE_Msk) | PDMA_OP_SCATTER;
     }
     else
     {

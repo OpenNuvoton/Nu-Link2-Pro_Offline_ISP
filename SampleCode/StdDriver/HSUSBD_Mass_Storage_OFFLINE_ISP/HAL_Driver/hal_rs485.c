@@ -46,7 +46,7 @@ void RS485_Init(void)
     UART1->INTEN = (UART_INTEN_TOCNTEN_Msk | UART_INTEN_RXTOIEN_Msk | UART_INTEN_RDAIEN_Msk);
 }
 
-__align(4) uint8_t  uart_rcvbuf[64] = {0};
+uint8_t __attribute__((aligned(4))) uart_rcvbuf[64] = {0};
 
 uint8_t volatile bUartDataReady = 0;
 uint8_t volatile bufhead = 0;

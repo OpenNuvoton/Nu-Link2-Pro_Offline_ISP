@@ -3,7 +3,8 @@
  * @version  V3.00
  * @brief    M480 series CLK driver source file
  *
- * @copyright (C) 2016 Nuvoton Technology Corp. All rights reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ * @copyright (C) 2016-2020 Nuvoton Technology Corp. All rights reserved.
  *****************************************************************************/
 
 #include "NuMicro.h"
@@ -15,6 +16,8 @@
 /** @addtogroup CLK_Driver CLK Driver
   @{
 */
+
+int32_t g_CLK_i32ErrCode = 0;    /*!< CLK global error code */
 
 /** @addtogroup CLK_EXPORTED_FUNCTIONS CLK Exported Functions
   @{
@@ -807,8 +810,12 @@ uint32_t CLK_EnablePLL(uint32_t u32PllClkSrc, uint32_t u32PllFreq)
         u32CLK_SRC = CLK_PLLCTL_PLLSRC_HXT;
         u32PllSrcClk = __HXT;
 
-        /* u32NR start from 2 */
-        u32NR = 2UL;
+        /* Check HXT range. Set u32NR start value */
+        /* Constraint 1: 4MHz <= FREF <= 8MHz */
+        if((u32PllSrcClk >= 4000000UL) && (u32PllSrcClk <= 8000000UL))
+            u32NR = 1UL;
+        else
+            u32NR = 2UL;
     }
 
     /* PLL source clock is from HIRC */
@@ -861,7 +868,7 @@ uint32_t CLK_EnablePLL(uint32_t u32PllClkSrc, uint32_t u32PllFreq)
                 {
                 }
 
-                for(u32NR = 2UL; u32NR <= 32UL; u32NR++)
+                for(u32NR = 1UL; u32NR <= 32UL; u32NR++)
                 {
                     /* Break when get good results */
                     if (u32Min == 0UL)
@@ -955,21 +962,27 @@ void CLK_DisablePLL(void)
   *             - \ref CLK_STATUS_PLLSTB_Msk
   * @retval     0  clock is not stable
   * @retval     1  clock is stable
-  * @details    To wait for clock ready by specified clock source stable flag or timeout (~300ms)
+  * @details    To wait for clock ready by specified clock source stable flag or timeout (~500ms)
+  * @note       This function sets g_CLK_i32ErrCode to CLK_TIMEOUT_ERR if clock source status is not stable
   */
 uint32_t CLK_WaitClockReady(uint32_t u32ClkMask)
 {
-    int32_t i32TimeOutCnt = 2160000;
+    uint32_t u32TimeOutCnt = SystemCoreClock / 2;
     uint32_t u32Ret = 1U;
 
+    g_CLK_i32ErrCode = 0;
     while((CLK->STATUS & u32ClkMask) != u32ClkMask)
     {
-        if(i32TimeOutCnt-- <= 0)
+        if(--u32TimeOutCnt == 0)
         {
             u32Ret = 0U;
             break;
         }
     }
+
+    if(u32TimeOutCnt == 0)
+        g_CLK_i32ErrCode = CLK_TIMEOUT_ERR;
+
     return u32Ret;
 }
 
@@ -1101,10 +1114,11 @@ void CLK_EnableDPDWKPin(uint32_t u32TriggerType)
 
     if ((SYS->CSERVER & SYS_CSERVER_VERSION_Msk) == 0x1) // M480LD
     {
-        u32Pin1 = (((u32TriggerType) & 0x03UL) >> CLK_PMUCTL_WKPINEN1_Pos);
-        u32Pin2 = (((u32TriggerType) & 0x03UL) >> CLK_PMUCTL_WKPINEN2_Pos);
-        u32Pin3 = (((u32TriggerType) & 0x03UL) >> CLK_PMUCTL_WKPINEN3_Pos);
-        u32Pin4 = (((u32TriggerType) & 0x03UL) >> CLK_PMUCTL_WKPINEN4_Pos);
+
+        u32Pin1 = ((u32TriggerType) & CLK_PMUCTL_WKPINEN1_Msk);
+        u32Pin2 = ((u32TriggerType) & CLK_PMUCTL_WKPINEN2_Msk);
+        u32Pin3 = ((u32TriggerType) & CLK_PMUCTL_WKPINEN3_Msk);
+        u32Pin4 = ((u32TriggerType) & CLK_PMUCTL_WKPINEN4_Msk);
 
         if(u32Pin1)
         {

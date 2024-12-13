@@ -3,7 +3,8 @@
  * @version V1.00
  * @brief   M480 series SPIM driver
  *
- * @copyright (C) 2017 Nuvoton Technology Corp. All rights reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ * @copyright (C) 2016-2020 Nuvoton Technology Corp. All rights reserved.
 *****************************************************************************/
 
 #include <stdio.h>
@@ -436,7 +437,7 @@ static int spim_wait_write_done(uint32_t u32NBit)
     uint32_t   count;
     int        ret = -1;
 
-    for (count = 0UL; count < SystemCoreClock/1000UL; count++)
+    for (count = 0UL; count < SystemCoreClock / 10UL; count++)
     {
         if (spim_is_write_done(u32NBit))
         {
@@ -663,11 +664,17 @@ void SPIM_SetQuadEnable(int isEn, uint32_t u32NBit)
         SPIM_DBGMSG("Status Register: 0x%x - 0x%x\n", dataBuf[0], dataBuf[1]);
         if (isEn)
         {
-            dataBuf[1] |= SR2_QE;
+            if (dataBuf[1] & SR2_QE)
+                return;
+            else
+                dataBuf[1] |= SR2_QE;
         }
         else
         {
-            dataBuf[1] &= ~SR2_QE;
+            if ((dataBuf[1] & SR2_QE) == 0)
+                return;
+            else
+                dataBuf[1] &= ~SR2_QE;
         }
 
         spim_set_write_enable(1, u32NBit);   /* Write Enable.    */
@@ -833,6 +840,7 @@ int SPIM_Enable_4Bytes_Mode(int isEn, uint32_t u32NBit)
     int  isSupt = 0L, ret = -1;
     uint8_t idBuf[3];
     uint8_t cmdBuf[1];                           /* 1-byte Enter/Exit 4-Byte Mode command. */
+    int32_t  tout;
 
     SPIM_ReadJedecId(idBuf, sizeof (idBuf), u32NBit);
 
@@ -872,20 +880,56 @@ int SPIM_Enable_4Bytes_Mode(int isEn, uint32_t u32NBit)
          * FIXME: Per test, 4BYTE Indicator bit doesn't set after EN4B, which
          * doesn't match spec(MX25L25635E), so skip the check below.
          */
+        ret = 0;
         if (idBuf[0] != MFGID_MXIC)
         {
+            /*
+             *  About over 100 instrucsions executed, just want to give
+             *  a time-out about 1 seconds to avoid infinite loop
+             */
+            tout = (SystemCoreClock)/100;
+
             if (isEn)
             {
-                while (! SPIM_Is4ByteModeEnable(u32NBit)) { }
+                while ((tout-- > 0) && !SPIM_Is4ByteModeEnable(u32NBit)) { }
             }
             else
             {
-                while (SPIM_Is4ByteModeEnable(u32NBit)) { }
+                while ((tout-- > 0) && SPIM_Is4ByteModeEnable(u32NBit)) { }
             }
+            if (tout <= 0)
+                ret = -1;
         }
-        ret = 0;
     }
     return ret;
+}
+
+
+void SPIM_WinbondUnlock(uint32_t u32NBit)
+{
+    uint8_t   idBuf[3];
+    uint8_t   dataBuf[4];
+
+    SPIM_ReadJedecId(idBuf, sizeof (idBuf), u32NBit);
+
+    if ((idBuf[0] != MFGID_WINBOND) || (idBuf[1] != 0x40) || (idBuf[2] != 0x16))
+    {
+        SPIM_DBGMSG("SPIM_WinbondUnlock - Not W25Q32, do nothing.\n");
+        return;
+    }
+
+    SPIM_ReadStatusRegister(&dataBuf[0], 1UL, u32NBit);
+    SPIM_ReadStatusRegister2(&dataBuf[1], 1UL, u32NBit);
+    SPIM_DBGMSG("Status Register: 0x%x - 0x%x\n", dataBuf[0], dataBuf[1]);
+    dataBuf[1] &= ~0x40;    /* clear Status Register-1 SEC bit */
+
+    spim_set_write_enable(1, u32NBit);   /* Write Enable.    */
+    SPIM_WriteStatusRegister2(dataBuf, sizeof (dataBuf), u32NBit);
+    spim_wait_write_done(u32NBit);
+
+    SPIM_ReadStatusRegister(&dataBuf[0], 1UL, u32NBit);
+    SPIM_ReadStatusRegister2(&dataBuf[1], 1UL, u32NBit);
+    SPIM_DBGMSG("Status Register (after unlock): 0x%x - 0x%x\n", dataBuf[0], dataBuf[1]);
 }
 
 /**
@@ -910,6 +954,7 @@ void SPIM_ChipErase(uint32_t u32NBit, int isSync)
         spim_wait_write_done(u32NBit);
     }
 }
+
 
 /**
   * @brief      Erase one block.

@@ -315,7 +315,7 @@ int ISP_CmdGetDeviceID(lua_State *L)
     }
     else
     {
-        lua_pushnumber(L, (unsigned int)0xffffffff);
+        lua_pushnumber(L, (lua_Number)(unsigned int)0xffffffff);
     }
 
     return 1;
@@ -333,7 +333,7 @@ int ISP_CmdGetFlashMode(lua_State *L)
     }
     else
     {
-        lua_pushnumber(L, (unsigned int)0xffffffff);
+        lua_pushnumber(L, (lua_Number)(unsigned int)0xffffffff);
     }
 
     return 1;

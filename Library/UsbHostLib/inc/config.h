@@ -3,7 +3,8 @@
  * @version  V1.00
  * @brief    This header file defines the configuration of USB Host library.
  *
- * @copyright (C) 2018 Nuvoton Technology Corp. All rights reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ * @copyright (C) 2017-2020 Nuvoton Technology Corp. All rights reserved.
  *****************************************************************************/
 
 #ifndef  _USBH_CONFIG_H_
@@ -23,10 +24,10 @@
 #define DISABLE_EHCI_IRQ()     NVIC_DisableIRQ(HSUSBH_IRQn)
 
 #define ENABLE_OHCI                         /* Enable OHCI host controller                */
-//#define ENABLE_EHCI                         /* Enable EHCI host controller                */
+#define ENABLE_EHCI                         /* Enable EHCI host controller                */
 
-//#define EHCI_PORT_CNT          1            /* Number of EHCI roothub ports               */
-//#define OHCI_PORT_CNT          2            /* Number of OHCI roothub ports               */
+#define EHCI_PORT_CNT          1            /* Number of EHCI roothub ports               */
+#define OHCI_PORT_CNT          2            /* Number of OHCI roothub ports               */
 #define OHCI_PER_PORT_POWER                 /* OHCI root hub per port powered             */
 
 #define OHCI_ISO_DELAY         4            /* preserved number frames while scheduling 
@@ -52,17 +53,17 @@
                                           But the maximum number of connected devices and transfers are
                                           limited.  */
 
-#define MAX_UDEV_DRIVER        2       /*!< Maximum number of registered drivers                      */
-#define MAX_ALT_PER_IFACE      3       /*!< maximum number of alternative interfaces per interface    */
-#define MAX_EP_PER_IFACE       4       /*!< maximum number of endpoints per interface                 */
-#define MAX_HUB_DEVICE         1       /*!< Maximum number of hub devices                             */
+#define MAX_UDEV_DRIVER        8       /*!< Maximum number of registered drivers                      */
+#define MAX_ALT_PER_IFACE      8       /*!< maximum number of alternative interfaces per interface    */
+#define MAX_EP_PER_IFACE       6       /*!< maximum number of endpoints per interface                 */
+#define MAX_HUB_DEVICE         8       /*!< Maximum number of hub devices                             */
 
 /* Host controller hardware transfer descriptors memory pool. ED/TD/ITD of OHCI and QH/QTD of EHCI
    are all allocated from this pool. Allocated unit size is determined by MEM_POOL_UNIT_SIZE.
    May allocate one or more units depend on hardware descriptor type.                                 */
 
 #define MEM_POOL_UNIT_SIZE     64      /*!< A fixed hard coding setting. Do not change it!            */
-#define MEM_POOL_UNIT_NUM      64      /*!< Increase this or heap size if memory allocate failed.     */
+#define MEM_POOL_UNIT_NUM     256      /*!< Increase this or heap size if memory allocate failed.     */
 
 /*----------------------------------------------------------------------------------------*/
 /*   Re-defined staff for various compiler                                                */

@@ -35,7 +35,8 @@ void SDH1_IRQHandler(void)
     if (isr & SDH_INTSTS_BLKDIF_Msk)
     {
         // block down
-        g_u8SDDataReadyFlag = TRUE;
+        //g_u8SDDataReadyFlag = TRUE;
+				SD1.DataReadyFlag = TRUE;
         SDH1->INTSTS = SDH_INTSTS_BLKDIF_Msk;
     }
 
@@ -77,11 +78,11 @@ void SDH1_IRQHandler(void)
         }
         else if (!(isr & SDH_INTSTS_CRC7_Msk))
         {
-            if (!g_u8R3Flag)
-            {
+            //if (!g_u8R3Flag)
+            //{
                 //printf("***** ISR sdioIntHandler(): CRC_7 error !\n");
                 // handle CRC error
-            }
+            //}
         }
 
         SDH1->INTSTS = SDH_INTSTS_CRCIF_Msk;      // clear interrupt flag

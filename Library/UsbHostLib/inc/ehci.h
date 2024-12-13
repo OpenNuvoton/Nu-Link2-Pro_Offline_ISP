@@ -3,7 +3,8 @@
  * @version  V1.00
  * @brief    USB EHCI host controller driver header file.
  *
- * @copyright (C) 2017 Nuvoton Technology Corp. All rights reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ * @copyright (C) 2017-2020 Nuvoton Technology Corp. All rights reserved.
  *****************************************************************************/
 
 #ifndef _USBH_EHCI_H_
@@ -100,6 +101,7 @@ typedef struct qh_t
     /*
      * The following members are used by USB Host libary.
      */
+    qTD_T       *dummy;                     /* point to the inactive dummy qTD            */
     qTD_T       *qtd_list;                  /* currently linked qTD transfers             */
     qTD_T       *done_list;                 /* currently linked qTD transfers             */
     struct qh_t *next;                      /* point to the next QH in remove list        */
